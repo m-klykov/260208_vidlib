@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QListWidget, QListWidgetItem, QVBoxLayout, QPushButton, QHBoxLayout, \
-    QInputDialog, QMessageBox, QSizePolicy
+    QInputDialog, QMessageBox, QSizePolicy, QMenu
 from PySide6.QtCore import Qt, Signal
 from .c_video import VideoController
 from .u_layouts import FlowLayout
@@ -11,6 +11,10 @@ class SceneListWidget(QWidget):
         self.controller : VideoController = controller
 
         self._init_ui()
+
+        # Разрешаем кастомное контекстное меню для списка
+        self.list_widget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.list_widget.customContextMenuRequested.connect(self._show_context_menu)
 
         # Подписываемся на обновление данных из контроллера
         self.controller.scenes_updated.connect(self.refresh_list)
@@ -110,6 +114,7 @@ class SceneListWidget(QWidget):
             new_title, ok = QInputDialog.getText(self, "Переименовать", "Заголовок:", text=old_title)
             if ok and new_title:
                 self.controller.rename_scene(frame_idx, new_title)
+                self._select_by_frame(frame_idx)
 
     def _on_item_double_clicked(self, item):
         # По двойному клику просто переходим к кадру
@@ -124,3 +129,34 @@ class SceneListWidget(QWidget):
         msg.setText(message)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec()
+
+    def _show_context_menu(self, position):
+        """Создает и показывает меню при правом клике"""
+        item = self.list_widget.itemAt(position)
+        if not item:
+            return
+
+        # Создаем меню
+        menu = QMenu(self)
+
+        # Создаем действия (Actions)
+        # Мы можем переиспользовать существующие методы логики
+        act_jump = menu.addAction("Перейти к кадру")
+        menu.addSeparator()
+        act_rename = menu.addAction("Переименовать")
+        act_relocate = menu.addAction("Подвинуть на текущий кадр")
+        menu.addSeparator()
+        act_del = menu.addAction("Удалить сцену")
+
+        # Выполняем меню в позиции курсора и получаем выбранное действие
+        action = menu.exec(self.list_widget.mapToGlobal(position))
+
+        # Обработка выбора
+        if action == act_jump:
+            self._on_item_double_clicked(item)
+        elif action == act_rename:
+            self._on_rename()
+        elif action == act_relocate:
+            self._on_relocate()
+        elif action == act_del:
+            self._on_delete()
