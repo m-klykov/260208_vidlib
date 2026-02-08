@@ -21,7 +21,8 @@ class SceneListWidget(QWidget):
 
     def _add_scene(self):
         idx = self.controller.model.get_current_index()
-        item = QListWidgetItem(f"Сцена на кадре: {idx}")
+        info = self.controller.model.get_full_timestamp()
+        item = QListWidgetItem(f"{info}")
         item.setData(Qt.UserRole, idx)  # Сохраняем номер кадра внутри элемента
         self.list_widget.addItem(item)
 

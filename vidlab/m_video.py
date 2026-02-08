@@ -44,3 +44,34 @@ class VideoModel:
 
     def get_current_index(self):
         return self.current_idx
+
+    def get_time_string(self, frame_idx=None):
+        if frame_idx is None:
+            frame_idx = self.current_idx
+
+        if self.fps <= 0:
+            return "00:00:00.00"
+
+        # Считаем часы, минуты, секунды
+        total_seconds = frame_idx / self.fps
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        seconds = int(total_seconds % 60)
+
+        # Остаток кадров внутри текущей секунды
+        frames_remainder = int(frame_idx % self.fps)
+
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{frames_remainder:02d}"
+
+    def get_full_timestamp(self, frame_idx=None):
+        if frame_idx is None:
+            frame_idx = self.current_idx
+
+        if frame_idx <= 0:
+            return "0 (00:00:00.00)"
+
+        return f"{frame_idx} ({self.get_time_string(frame_idx)})"
+
+    def get_total_timestamp(self):
+        return self.get_full_timestamp(self.frame_count - 1)
+

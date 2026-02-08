@@ -1,5 +1,5 @@
 import cv2
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QSizePolicy
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QImage, QPixmap
 from .c_video import VideoController
@@ -24,13 +24,36 @@ class VideoWidget(QWidget):
         self.video_label.setAlignment(Qt.AlignCenter)
         self.video_label.setStyleSheet("background-color: black;")
         self.video_label.setMinimumSize(640, 360)
+        # Важно: разрешаем лейблу сжиматься и растягиваться во все стороны
+        self.video_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         layout.addWidget(self.video_label)
+
+        # Ряд со слайдером и временем
+        slider_layout = QHBoxLayout()
+
+        # Стиль для шрифта: жирный и увеличенный (например, 14px)
+        font_style = "font-size: 14px; font-weight: bold; color: #2c3e50;"
+
+        # Индикатор текущего времени/кадра
+        self.lbl_time = QLabel("0 (00:00:00.00)")
+        self.lbl_time.setStyleSheet(font_style)
+        self.lbl_time.setMinimumWidth(100)  # Чтобы слайдер не прыгал при смене цифр
 
         # Слайдер
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setFocusPolicy(Qt.StrongFocus)  # Слайдер может принимать фокус
 
-        layout.addWidget(self.slider)
+        # Правый индикатор (общая длительность)
+        self.lbl_total = QLabel("0 (00:00:00.00)")
+        self.lbl_total.setStyleSheet(font_style)
+        self.lbl_total.setMinimumWidth(100)
+        # self.lbl_total.setAlignment(Qt.AlignRight)
+
+        slider_layout.addWidget(self.lbl_time)
+        slider_layout.addWidget(self.slider)
+        slider_layout.addWidget(self.lbl_total)
+        layout.addLayout(slider_layout)
 
         # Кнопки управления
         controls = QHBoxLayout()
@@ -96,8 +119,14 @@ class VideoWidget(QWidget):
         self.slider.blockSignals(True)
         if self.controller.model.frame_count > 0:
             self.slider.setMaximum(self.controller.model.frame_count - 1)
+            # Обновляем правую метку (длительность)
+            self.lbl_total.setText(self.controller.model.get_total_timestamp())
         self.slider.setValue(pos)
         self.slider.blockSignals(False)
+
+        # Обновляем текстовый индикатор
+        timestamp = self.controller.model.get_full_timestamp(pos)
+        self.lbl_time.setText(timestamp)
 
     def update_play_button(self, is_playing):
         self.btn_play.setText("Pause" if is_playing else "Play")
