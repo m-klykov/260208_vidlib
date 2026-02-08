@@ -83,6 +83,15 @@ class VideoController(QObject):
     def to_end(self):
         self.seek(self.model.frame_count - 1)
 
+    def to_in_point(self):
+        target = self.project.get_in_frame()
+        self.seek(target)
+
+    def to_out_point(self):
+        total = self.model.frame_count
+        target = self.project.get_out_frame(total)
+        self.seek(target)
+
     def add_current_scene(self):
         idx = self.model.current_idx
         self.project.add_scene(idx)
@@ -111,4 +120,10 @@ class VideoController(QObject):
             return True
 
         return False
+
+    def add_special_mark(self, m_type):
+        idx = self.model.current_idx
+        # Модель сама разберется с удалением дубликатов типа
+        self.project.add_special_mark(idx, m_type)
+        self.scenes_updated.emit(self.project.scenes)
 

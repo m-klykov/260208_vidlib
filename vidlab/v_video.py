@@ -38,7 +38,7 @@ class VideoWidget(QWidget):
         # Индикатор текущего времени/кадра
         self.lbl_time = QLabel("0 (00:00:00.00)")
         self.lbl_time.setStyleSheet(font_style)
-        self.lbl_time.setMinimumWidth(100)  # Чтобы слайдер не прыгал при смене цифр
+        self.lbl_time.setMinimumWidth(120)  # Чтобы слайдер не прыгал при смене цифр
 
         # Слайдер
         self.slider = QSlider(Qt.Horizontal)
@@ -47,7 +47,7 @@ class VideoWidget(QWidget):
         # Правый индикатор (общая длительность)
         self.lbl_total = QLabel("0 (00:00:00.00)")
         self.lbl_total.setStyleSheet(font_style)
-        self.lbl_total.setMinimumWidth(100)
+        self.lbl_total.setMinimumWidth(120)
         # self.lbl_total.setAlignment(Qt.AlignRight)
 
         slider_layout.addWidget(self.lbl_time)
@@ -58,12 +58,21 @@ class VideoWidget(QWidget):
         # Кнопки управления
         controls = QHBoxLayout()
         self.btn_start = QPushButton("|<")
+        self.btn_go_in = QPushButton("In<")  # К началу области
+        self.btn_go_in.setToolTip("Перейти к началу области (In)")
         self.btn_back = QPushButton("<")
         self.btn_play = QPushButton("Play")
         self.btn_forward = QPushButton(">")
+        self.btn_go_out = QPushButton(">Out")  # К концу области
+        self.btn_go_out.setToolTip("Перейти к концу области (Out)")
         self.btn_end = QPushButton(">|")
 
-        for btn in [self.btn_start, self.btn_back, self.btn_play, self.btn_forward, self.btn_end]:
+        self.btn_go_in.setToolTip("Перейти к началу области (In)")
+        self.btn_go_out.setToolTip("Перейти к концу области (Out)")
+
+        for btn in [self.btn_start, self.btn_go_in, self.btn_back,
+                    self.btn_play,
+                    self.btn_forward, self.btn_go_out, self.btn_end]:
             btn.setFocusPolicy(Qt.NoFocus)  # Кнопки больше не крадут фокус у виджета
             controls.addWidget(btn)
 
@@ -76,6 +85,8 @@ class VideoWidget(QWidget):
         self.btn_end.clicked.connect(self.controller.to_end)
         self.btn_forward.clicked.connect(self.controller.step_forward)
         self.btn_back.clicked.connect(self.controller.step_backward)
+        self.btn_go_in.clicked.connect(self.controller.to_in_point)
+        self.btn_go_out.clicked.connect(self.controller.to_out_point)
 
         # Слайдер
         self.slider.valueChanged.connect(self._on_slider_changed)

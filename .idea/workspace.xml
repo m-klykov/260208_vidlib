@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="pip files">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="corret inline editing (only title)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_scene_list.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_scene_list.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_video.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -174,7 +175,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770579825271</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="corret inline editing (only title)">
+      <option name="closed" value="true" />
+      <created>1770585537808</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1770585537808</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -188,7 +197,8 @@
     <MESSAGE value="scene list context menu" />
     <MESSAGE value="in place editing" />
     <MESSAGE value="pip files" />
-    <option name="LAST_COMMIT_MESSAGE" value="pip files" />
+    <MESSAGE value="corret inline editing (only title)" />
+    <option name="LAST_COMMIT_MESSAGE" value="corret inline editing (only title)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

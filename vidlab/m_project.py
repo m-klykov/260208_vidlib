@@ -3,6 +3,11 @@ import os
 
 
 class VideoProjectModel:
+    # Типы меток
+    TYPE_IN = "start"
+    TYPE_OUT = "end"
+    TYPE_SCENE = "scene"
+
     def __init__(self):
         self.current_json_path = None
         self.scenes = []  # Список словарей: [{"frame": 100, "title": "Вход героя"}, ...]
@@ -38,6 +43,35 @@ class VideoProjectModel:
             self.scenes.append({"frame": frame_idx, "title": title})
             self.scenes.sort(key=lambda x: x['frame'])  # Сортируем по времени
             self.save_project()
+
+    # В методах модели теперь учитываем тип:
+    def add_special_mark(self, frame_idx, mark_type):
+        # Удаляем старую метку такого же типа, если она есть (может быть только один Вход и один Выход)
+        self.scenes = [s for s in self.scenes if s.get('type') != mark_type]
+
+        title = "START" if mark_type == self.TYPE_IN else "END"
+        self.scenes.append({
+            "frame": frame_idx,
+            "title": title,
+            "type": mark_type
+        })
+        self.scenes.sort(key=lambda x: x['frame'])
+        self.save_project()
+
+    def get_in_frame(self):
+        """Возвращает кадр метки IN или 0, если метки нет"""
+        for s in self.scenes:
+            if s.get('type') == self.TYPE_IN:
+                return s['frame']
+        return 0
+
+    def get_out_frame(self, total_frames):
+        """Возвращает кадр метки OUT или последний кадр видео, если метки нет"""
+        for s in self.scenes:
+            if s.get('type') == self.TYPE_OUT:
+                return s['frame']
+        # Если метки нет, возвращаем последний индекс кадра (total - 1)
+        return max(0, total_frames - 1)
 
     def remove_scene(self, frame_idx):
         self.scenes = [s for s in self.scenes if s['frame'] != frame_idx]

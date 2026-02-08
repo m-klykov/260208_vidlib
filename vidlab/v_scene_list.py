@@ -4,13 +4,21 @@ from PySide6.QtCore import Qt, Signal
 from .c_video import VideoController
 from .u_layouts import FlowLayout
 
-ROLE_CLEAN_TITLE = Qt.ItemDataRole.UserRole + 1
 ROLE_FRAME_IDX = Qt.ItemDataRole.UserRole
+ROLE_CLEAN_TITLE = Qt.ItemDataRole.UserRole + 1
+ROLE_TYPE = Qt.ItemDataRole.UserRole + 2
 
 class SceneItemDelegate(QStyledItemDelegate):
     def __init__(self, controller, parent=None):
         super().__init__(parent)
         self.controller = controller
+
+    def createEditor(self, parent, option, index):
+        # Проверяем тип метки перед созданием редактора
+        mark_type = index.data(ROLE_TYPE)
+        if mark_type in ["start", "end"]:
+            return None  # Редактор не откроется
+        return super().createEditor(parent, option, index)
 
     def displayText(self, value, locale):
         # value — это то, что лежит в DisplayRole (наше чистое имя)
@@ -78,7 +86,16 @@ class SceneListWidget(QWidget):
         self.btn_rename = QPushButton("Rename")
         self.btn_del = QPushButton("Delete")
 
-        for b in [self.btn_add, self.btn_relocate, self.btn_rename, self.btn_del]:
+        # Новые кнопки
+        self.btn_set_in = QPushButton("[ Set In")
+        self.btn_set_out = QPushButton("Set Out ]")
+
+        # Стилизуем их чуть иначе, чтобы выделить
+        self.btn_set_in.setStyleSheet("font-weight: bold; color: #2ecc71;")
+        self.btn_set_out.setStyleSheet("font-weight: bold; color: #e74c3c;")
+
+        for b in [self.btn_add, self.btn_relocate, self.btn_rename,
+                  self.btn_del, self.btn_set_in, self.btn_set_out]:
             b.setFocusPolicy(Qt.NoFocus)
             b.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
             btns.addWidget(b)
@@ -92,6 +109,9 @@ class SceneListWidget(QWidget):
         self.btn_relocate.clicked.connect(self._on_relocate)
         self.btn_del.clicked.connect(self._on_delete)
         self.btn_rename.clicked.connect(self._on_rename)
+        self.btn_set_in.clicked.connect(lambda: self._add_special("start"))
+        self.btn_set_out.clicked.connect(lambda: self._add_special("end"))
+
         self.list_widget.itemDoubleClicked.connect(self._on_item_double_clicked)
 
     def refresh_list(self, scenes):
@@ -99,11 +119,15 @@ class SceneListWidget(QWidget):
         self.list_widget.clear()
         for s in scenes:
             frame_idx = s['frame']
+            m_type = s.get('type', 'scene')
+
             # Получаем таймкод через модель видео (через контроллер)
             time_str = self.controller.model.get_time_string(frame_idx)
 
             # Текст для отображения: "00:00:05 [123] Название"
-            display_text = f"{time_str} [{frame_idx}] {s['title']}"
+            prefix = "▶ " if m_type == "start" else "◀ " if m_type == "end" else ""
+            display_text = f"{prefix}{time_str} [{frame_idx}] {s['title']}"
+
             item = QListWidgetItem()
 
             item.setData(ROLE_FRAME_IDX, frame_idx)
@@ -112,14 +136,16 @@ class SceneListWidget(QWidget):
             # Для редактирования (EditRole) — ТОЛЬКО название
             # Храним ЧИСТОЕ имя там, где Qt его не достанет автоматикой
             item.setData(ROLE_CLEAN_TITLE, s['title'])
+            item.setData(ROLE_TYPE, m_type)
+
             # Для отображения (DisplayRole) используем полную строку
             item.setData(Qt.ItemDataRole.DisplayRole, display_text)
-            # print(f"edit data {s['title']} -> {item.data(Qt.ItemDataRole.EditRole)}")
 
-            item.setFlags(item.flags()
-                          | Qt.ItemFlag.ItemIsEditable
-                          | Qt.ItemFlag.ItemIsEnabled
-                          | Qt.ItemFlag.ItemIsSelectable)
+            flags = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+            if m_type == "scene":
+                flags |= Qt.ItemFlag.ItemIsEditable
+
+            item.setFlags(flags)
 
             self.list_widget.addItem(item)
 
@@ -206,6 +232,10 @@ class SceneListWidget(QWidget):
         # По двойному клику просто переходим к кадру
         frame_idx = item.data(ROLE_FRAME_IDX)
         self.controller.seek(frame_idx)
+
+    def _add_special(self, m_type):
+        # В контроллер нужно добавить метод add_special_mark
+        self.controller.add_special_mark(m_type)
 
     def _show_error(self, message):
         """Универсальный метод для показа критических ошибок"""
