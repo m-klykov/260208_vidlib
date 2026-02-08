@@ -128,7 +128,6 @@ class MainView(QMainWindow):
     def _load_recent(self, path):
         self.controller.load_video(path)
 
-
     def _open_file_dialog(self):
         path, _ = QFileDialog.getOpenFileName(self, "Выбор видео")
         if path:

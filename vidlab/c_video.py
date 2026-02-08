@@ -1,8 +1,11 @@
 from PySide6.QtCore import QObject, QTimer, Signal
+
+from .m_project import VideoProjectModel
 from .m_video import VideoModel
 
 class VideoController(QObject):
     video_loaded = Signal()  # Сигнал без параметров, так как View сама возьмет данные из модели
+    scenes_updated = Signal(list) # сигнал для обновления виджета сцен
     frame_updated = Signal(object) # Передает кадр для отрисовки
     position_changed = Signal(int) # Передает текущий индекс кадра
     playing_changed = Signal(bool)  # True если играет, False если пауза
@@ -10,6 +13,8 @@ class VideoController(QObject):
     def __init__(self):
         super().__init__()
         self.model = VideoModel()
+        self.project = VideoProjectModel()  # Модель для JSON
+
         self.timer = QTimer()
         self.timer.timeout.connect(self._play_step)
         self._is_playing = False
@@ -25,6 +30,10 @@ class VideoController(QObject):
             self.stop()  # Сброс состояния
             self.seek(0)
             self.video_loaded.emit()  # Уведомляем всех подписанных
+
+            # Загружаем сцены из JSON при открытии видео
+            scenes = self.project.load_project(path)
+            self.scenes_updated.emit(scenes)  # Сообщаем View, что сцены загружены
 
             return True
         return False
@@ -73,3 +82,26 @@ class VideoController(QObject):
 
     def to_end(self):
         self.seek(self.model.frame_count - 1)
+
+    def add_current_scene(self):
+        idx = self.model.current_idx
+        self.project.add_scene(idx)
+        self.scenes_updated.emit(self.project.scenes)
+
+    def delete_scene(self, frame_idx):
+        self.project.remove_scene(frame_idx)
+        self.scenes_updated.emit(self.project.scenes)
+
+    def rename_scene(self, frame_idx, new_title):
+        self.project.update_scene_title(frame_idx, new_title)
+        self.scenes_updated.emit(self.project.scenes)
+
+    def relocate_scene(self, old_frame_idx):
+        new_idx = self.model.current_idx
+
+        if self.project.update_scene_frame(old_frame_idx, new_idx):
+            self.scenes_updated.emit(self.project.scenes)
+            return True
+
+        return False
+

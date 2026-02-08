@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="recent files, settings model, restore grometry">
-      <change afterPath="$PROJECT_DIR$/vidlab/m_config.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="active rirle and status bar info">
+      <change afterPath="$PROJECT_DIR$/vidlab/m_project.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vidlab/u_layouts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_scene_list.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_scene_list.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,7 +136,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770569477916</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="active rirle and status bar info">
+      <option name="closed" value="true" />
+      <created>1770572635783</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1770572635783</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -143,7 +153,8 @@
     <MESSAGE value="add scene list widget, last frame buff" />
     <MESSAGE value="add cur and total time" />
     <MESSAGE value="recent files, settings model, restore grometry" />
-    <option name="LAST_COMMIT_MESSAGE" value="recent files, settings model, restore grometry" />
+    <MESSAGE value="active rirle and status bar info" />
+    <option name="LAST_COMMIT_MESSAGE" value="active rirle and status bar info" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
