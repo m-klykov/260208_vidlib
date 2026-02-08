@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="editable scene list saved in jshn for each file">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="scene list context menu">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_scene_list.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_scene_list.py" afterDir="false" />
     </list>
@@ -148,7 +148,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770578208108</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="scene list context menu">
+      <option name="closed" value="true" />
+      <created>1770578763814</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1770578763814</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -159,7 +167,8 @@
     <MESSAGE value="recent files, settings model, restore grometry" />
     <MESSAGE value="active rirle and status bar info" />
     <MESSAGE value="editable scene list saved in jshn for each file" />
-    <option name="LAST_COMMIT_MESSAGE" value="editable scene list saved in jshn for each file" />
+    <MESSAGE value="scene list context menu" />
+    <option name="LAST_COMMIT_MESSAGE" value="scene list context menu" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

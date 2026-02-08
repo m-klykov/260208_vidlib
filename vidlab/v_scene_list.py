@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QListWidget, QListWidgetItem, QVBoxLayout, QPushButton, QHBoxLayout, \
-    QInputDialog, QMessageBox, QSizePolicy, QMenu
+    QInputDialog, QMessageBox, QSizePolicy, QMenu, QAbstractItemView
 from PySide6.QtCore import Qt, Signal
 from .c_video import VideoController
 from .u_layouts import FlowLayout
@@ -12,10 +12,6 @@ class SceneListWidget(QWidget):
 
         self._init_ui()
 
-        # Разрешаем кастомное контекстное меню для списка
-        self.list_widget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.list_widget.customContextMenuRequested.connect(self._show_context_menu)
-
         # Подписываемся на обновление данных из контроллера
         self.controller.scenes_updated.connect(self.refresh_list)
 
@@ -24,6 +20,19 @@ class SceneListWidget(QWidget):
 
         self.list_widget = QListWidget()
         layout.addWidget(self.list_widget)
+
+        # или когда элемент выбран и на него нажали еще раз (EditKeyPressed | SelectedClicked)
+        self.list_widget.setEditTriggers(
+            QAbstractItemView.EditKeyPressed |
+            QAbstractItemView.SelectedClicked
+        )
+
+        # Подключаем сигнал изменения данных (текста) в списке
+        self.list_widget.itemChanged.connect(self._on_item_changed)
+
+        # Разрешаем кастомное контекстное меню для списка
+        self.list_widget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.list_widget.customContextMenuRequested.connect(self._show_context_menu)
 
         btns_container = QWidget()
         btns = FlowLayout(btns_container, margin=0, spacing=5)
@@ -54,11 +63,18 @@ class SceneListWidget(QWidget):
         self.list_widget.itemDoubleClicked.connect(self._on_item_double_clicked)
 
     def refresh_list(self, scenes):
+        self.list_widget.blockSignals(True)
         self.list_widget.clear()
         for s in scenes:
             item = QListWidgetItem(f"[{s['frame']}] {s['title']}")
             item.setData(Qt.UserRole, s['frame'])
+
+            # ВАЖНО: Разрешаем редактирование элемента
+            item.setFlags(item.flags() | Qt.ItemIsEditable)
+
             self.list_widget.addItem(item)
+
+        self.list_widget.blockSignals(False)
 
     def _on_delete(self):
         item = self.list_widget.currentItem()
@@ -105,16 +121,40 @@ class SceneListWidget(QWidget):
                 self.list_widget.setCurrentItem(item)
                 break
 
+    # def _on_rename(self):
+    #     item = self.list_widget.currentItem()
+    #     if item:
+    #         frame_idx = item.data(Qt.UserRole)
+    #         old_title = item.text().split(']', 1)[-1].strip()
+    #
+    #         new_title, ok = QInputDialog.getText(self, "Переименовать", "Заголовок:", text=old_title)
+    #         if ok and new_title:
+    #             self.controller.rename_scene(frame_idx, new_title)
+    #             self._select_by_frame(frame_idx)
+
     def _on_rename(self):
+        """Теперь вместо диалога просто переводим текущий элемент в режим правки"""
         item = self.list_widget.currentItem()
         if item:
-            frame_idx = item.data(Qt.UserRole)
-            old_title = item.text().split(']', 1)[-1].strip()
+            self.list_widget.editItem(item)
 
-            new_title, ok = QInputDialog.getText(self, "Переименовать", "Заголовок:", text=old_title)
-            if ok and new_title:
-                self.controller.rename_scene(frame_idx, new_title)
-                self._select_by_frame(frame_idx)
+    def _on_item_changed(self, item):
+        """Срабатывает, когда пользователь закончил ввод текста в строке"""
+        frame_idx = item.data(Qt.UserRole)
+        full_text = item.text()
+
+        # Нам нужно отделить номер кадра от нового названия
+        # Текст выглядит как "[123] Название"
+        try:
+            if "]" in full_text:
+                new_title = full_text.split("]", 1)[1].strip()
+            else:
+                new_title = full_text.strip()
+
+            # Отправляем в контроллер
+            self.controller.rename_scene(frame_idx, new_title)
+        except Exception as e:
+            self._show_error(f"Ошибка при сохранении имени: {e}")
 
     def _on_item_double_clicked(self, item):
         # По двойному клику просто переходим к кадру
@@ -160,3 +200,11 @@ class SceneListWidget(QWidget):
             self._on_relocate()
         elif action == act_del:
             self._on_delete()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            self._on_delete()
+        elif event.key() == Qt.Key_F2:
+            self._on_rename()
+        else:
+            super().keyPressEvent(event)
