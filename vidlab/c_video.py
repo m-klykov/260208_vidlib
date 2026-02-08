@@ -2,6 +2,7 @@ from PySide6.QtCore import QObject, QTimer, Signal
 from .m_video import VideoModel
 
 class VideoController(QObject):
+    video_loaded = Signal()  # Сигнал без параметров, так как View сама возьмет данные из модели
     frame_updated = Signal(object) # Передает кадр для отрисовки
     position_changed = Signal(int) # Передает текущий индекс кадра
     playing_changed = Signal(bool)  # True если играет, False если пауза
@@ -23,6 +24,8 @@ class VideoController(QObject):
         if self.model.open_video(path):
             self.stop()  # Сброс состояния
             self.seek(0)
+            self.video_loaded.emit()  # Уведомляем всех подписанных
+
             return True
         return False
 

@@ -1,32 +1,74 @@
-from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QMainWindow, QDockWidget, QFileDialog
-from PySide6.QtCore import Qt
+import os
 
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QMainWindow, QDockWidget, QFileDialog, QLabel
+from PySide6.QtCore import Qt, QTimer
+
+from .m_config import APP_NAME
 from .m_settings import SettingsModel
 from .v_scene_list import SceneListWidget
 from .v_video import VideoWidget
 from .c_video import VideoController
+from .m_config import WIN_W, WIN_H, APP_NAME, APP_VER
 
-WIN_W, WIN_H = 1100, 700 # размер главного окна
 
 class MainView(QMainWindow):
     def __init__(self, controller):
         super().__init__()
+
+        self.resize(WIN_W, WIN_H)
+
         self.controller : VideoController = controller
 
         self.settings = SettingsModel.get_instance()
 
-        self.setWindowTitle("Video Analyzer MVC")
-        self.resize(WIN_W, WIN_H)
+        # Устанавливаем начальный заголовок
+        self.update_title()
 
-        # Главный виджет видео
+        self._init_ui()
+        self._create_menu()
+
+        # Подключаем сигналы контроллера для обновления метаданных
+        # Предположим, у контроллера будет сигнал video_loaded
+        self.controller.video_loaded.connect(self.on_video_loaded)
+
+        self._load_settings()
+
+    def _init_ui(self):
+        # --- Видео виджет ---
         self.video_display = VideoWidget(self.controller)
         self.setCentralWidget(self.video_display)
 
-        self.scene_dock = None
+        # Панель сцен
+        self.scene_dock = QDockWidget("Ключевые кадры", self)
+        self.scene_dock.setObjectName("SceneListDock")
+        self.scene_dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.scene_widget = SceneListWidget(self.controller)
+        self.scene_dock.setWidget(self.scene_widget)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.scene_dock)
+        self.scene_dock.hide()
 
-        self._create_menu()
-        self._load_settings()
+        # --- СТРОКА СОСТОЯНИЯ ---
+        self.status_bar = self.statusBar()
+
+        self.info_label = QLabel(" Видео не загружено")
+        self.status_bar.addWidget(self.info_label)
+
+        # spacer = QLabel("  |  ")
+        # self.status_bar.addWidget(spacer)
+
+        self.msg_label = QLabel("")
+
+        # '1' заставляет этот лейбл растягиваться
+        self.status_bar.addWidget(self.msg_label, 1)
+
+    def update_title(self, file_path=None):
+        """Обновляет заголовок окна"""
+        if file_path:
+            file_name = os.path.basename(file_path)
+            self.setWindowTitle(f"{file_name} — {APP_NAME} v{APP_VER}")
+        else:
+            self.setWindowTitle(f"{APP_NAME} v{APP_VER}")
 
     def _create_menu(self):
         menu = self.menuBar()
@@ -39,8 +81,11 @@ class MainView(QMainWindow):
         self._update_recent_files_menu()
 
         self.view_menu = menu.addMenu("Вид")
-        scenes_act = self.view_menu.addAction("Показать список сцен")
-        scenes_act.triggered.connect(self.show_scenes_panel)
+
+        toggle_scenes_act = self.scene_dock.toggleViewAction()
+        toggle_scenes_act.setText("Список сцен")
+
+        self.view_menu.addAction(toggle_scenes_act)
 
     def _update_recent_files_menu(self):
         self.recent_menu.clear()
@@ -55,36 +100,39 @@ class MainView(QMainWindow):
             action.triggered.connect(lambda chk=False, p=f_path: self._load_recent(p))
             self.recent_menu.addAction(action)
 
+    def on_video_loaded(self):
+        """Вызывается, когда контроллер успешно загрузил видео"""
+        model = self.controller.model
+        path = model.file_path
+
+        # 1. Обновляем заголовок
+        self.update_title(path)
+
+        # обновляем меню
+        self.settings.add_recent_file(path)
+        self._update_recent_files_menu()
+
+        # 2. Обновляем строку состояния
+        info = f"Разрешение: {model.width}x{model.height} | FPS: {model.fps:.2f}"
+        self.info_label.setText(info)
+
+        self.show_status_msg("Видео успешно загружено")
+
+    def show_status_msg(self, text, timeout=3000):
+        """Выводит временное сообщение в строку состояния"""
+        self.msg_label.setText("| "+text)
+        # Очищаем через N миллисекунд
+        if timeout > 0:
+            QTimer.singleShot(timeout, lambda: self.msg_label.setText(""))
+
     def _load_recent(self, path):
-        if self.controller.load_video(path):
-            self.settings.add_recent_file(path)
-            self._update_recent_files_menu()
+        self.controller.load_video(path)
+
 
     def _open_file_dialog(self):
         path, _ = QFileDialog.getOpenFileName(self, "Выбор видео")
         if path:
-            if self.controller.load_video(path):
-                self.settings.add_recent_file(path)
-                self._update_recent_files_menu()
-
-    def show_scenes_panel(self):
-        """Создает и показывает панель, если она еще не создана"""
-        if self.scene_dock is None:
-            # Создаем док-виджет
-            self.scene_dock = QDockWidget("Ключевые кадры", self)
-            # Разрешаем закрывать, перемещать и делать плавающим
-            self.scene_dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-
-            # Инициализируем сам виджет списка
-            self.scene_widget = SceneListWidget(self.controller)
-            self.scene_dock.setWidget(self.scene_widget)
-
-            # Добавляем в основное окно (справа)
-            self.addDockWidget(Qt.RightDockWidgetArea, self.scene_dock)
-
-        # Делаем панель видимой (на случай если ее закрыли крестиком)
-        self.scene_dock.show()
-        self.scene_dock.raise_()  # Выводим на передний план
+            self.controller.load_video(path)
 
     # --- СОХРАНЕНИЕ СОСТОЯНИЯ ---
 
