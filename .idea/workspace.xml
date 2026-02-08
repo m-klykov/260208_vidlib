@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="scene list context menu">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="pip files">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_scene_list.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_scene_list.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -156,7 +158,23 @@
       <option name="project" value="LOCAL" />
       <updated>1770578763814</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="in place editing">
+      <option name="closed" value="true" />
+      <created>1770579784555</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1770579784555</updated>
+    </task>
+    <task id="LOCAL-00010" summary="pip files">
+      <option name="closed" value="true" />
+      <created>1770579825271</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1770579825271</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -168,7 +186,9 @@
     <MESSAGE value="active rirle and status bar info" />
     <MESSAGE value="editable scene list saved in jshn for each file" />
     <MESSAGE value="scene list context menu" />
-    <option name="LAST_COMMIT_MESSAGE" value="scene list context menu" />
+    <MESSAGE value="in place editing" />
+    <MESSAGE value="pip files" />
+    <option name="LAST_COMMIT_MESSAGE" value="pip files" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

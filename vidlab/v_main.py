@@ -1,6 +1,6 @@
 import os
 
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QShortcut, QKeySequence
 from PySide6.QtWidgets import QMainWindow, QDockWidget, QFileDialog, QLabel
 from PySide6.QtCore import Qt, QTimer
 
@@ -27,6 +27,10 @@ class MainView(QMainWindow):
 
         self._init_ui()
         self._create_menu()
+
+        # Создаем горячую клавишу Ctrl+L
+        # self.shortcut_last_file = QShortcut(QKeySequence("Ctrl+L"), self)
+        # self.shortcut_last_file.activated.connect(self._load_most_recent_file)
 
         # Подключаем сигналы контроллера для обновления метаданных
         # Предположим, у контроллера будет сигнал video_loaded
@@ -74,7 +78,12 @@ class MainView(QMainWindow):
         menu = self.menuBar()
         file_menu = menu.addMenu("Файл")
         open_act = file_menu.addAction("Открыть")
+        open_act.setShortcut("Ctrl+O")
         open_act.triggered.connect(self._open_file_dialog)
+
+        last_act = file_menu.addAction("Открыть последний")
+        last_act.setShortcut("Ctrl+L")
+        last_act.triggered.connect(self._load_most_recent_file)
 
         # Подменю для последних файлов
         self.recent_menu = file_menu.addMenu("Последние файлы")
@@ -127,6 +136,19 @@ class MainView(QMainWindow):
 
     def _load_recent(self, path):
         self.controller.load_video(path)
+
+    def _load_most_recent_file(self):
+        """Загружает самый первый файл из списка последних"""
+        recent_files = self.settings.get_recent_files()
+
+        if recent_files and len(recent_files) > 0:
+            last_path = recent_files[0]
+            # Вызываем метод загрузки (контроллер сам уведомит всех через сигнал)
+            self._load_recent(last_path)
+            self.show_status_msg(f"Загружен последний файл: {os.path.basename(last_path)}")
+        else:
+            self.show_status_msg("Список последних файлов пуст")
+            self._show_error("Нет недавно открытых файлов для быстрой загрузки.")
 
     def _open_file_dialog(self):
         path, _ = QFileDialog.getOpenFileName(self, "Выбор видео")

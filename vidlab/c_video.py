@@ -92,7 +92,14 @@ class VideoController(QObject):
         self.project.remove_scene(frame_idx)
         self.scenes_updated.emit(self.project.scenes)
 
-    def rename_scene(self, frame_idx, new_title):
+    def rename_scene(self, frame_idx, full_text):
+        # Извлекаем текст после последней закрывающей скобки
+        # Строка: "00:00:01 [100] Моя сцена" -> "Моя сцена"
+        if "]" in full_text:
+            new_title = full_text.split("]")[-1].strip()
+        else:
+            new_title = full_text.strip()
+
         self.project.update_scene_title(frame_idx, new_title)
         self.scenes_updated.emit(self.project.scenes)
 

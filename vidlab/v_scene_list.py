@@ -1,8 +1,35 @@
 from PySide6.QtWidgets import QWidget, QListWidget, QListWidgetItem, QVBoxLayout, QPushButton, QHBoxLayout, \
-    QInputDialog, QMessageBox, QSizePolicy, QMenu, QAbstractItemView
+    QInputDialog, QMessageBox, QSizePolicy, QMenu, QAbstractItemView, QStyledItemDelegate, QLineEdit
 from PySide6.QtCore import Qt, Signal
 from .c_video import VideoController
 from .u_layouts import FlowLayout
+
+ROLE_CLEAN_TITLE = Qt.ItemDataRole.UserRole + 1
+ROLE_FRAME_IDX = Qt.ItemDataRole.UserRole
+
+class SceneItemDelegate(QStyledItemDelegate):
+    def __init__(self, controller, parent=None):
+        super().__init__(parent)
+        self.controller = controller
+
+    def displayText(self, value, locale):
+        # value — это то, что лежит в DisplayRole (наше чистое имя)
+        # Мы ищем, к какому кадру относится этот элемент через данные айтема
+        # Но проще всего: если мы в refresh_list положим в DisplayRole чистое имя,
+        # здесь мы его украсим таймкодом.
+        return value
+
+        # Чтобы разделить текст при чтении и правке, переопределим создание редактора
+
+    def setEditorData(self, editor, index):
+        # Когда открывается поле ввода (QLineEdit), берем данные из EditRole
+        text = index.data(ROLE_CLEAN_TITLE)
+        print(f"edited text: {text}")
+        editor.setText(text)
+
+    def setModelData(self, editor, model, index):
+        # Когда пользователь нажал Enter, сохраняем введенное в EditRole
+        model.setData(index, editor.text(), ROLE_CLEAN_TITLE)
 
 
 class SceneListWidget(QWidget):
@@ -19,6 +46,11 @@ class SceneListWidget(QWidget):
         layout = QVBoxLayout(self)
 
         self.list_widget = QListWidget()
+        self.delegate = SceneItemDelegate(self.controller, self)
+        self.list_widget.setItemDelegate(self.delegate)
+        print(f"set delegate")
+
+
         layout.addWidget(self.list_widget)
 
         # или когда элемент выбран и на него нажали еще раз (EditKeyPressed | SelectedClicked)
@@ -66,11 +98,28 @@ class SceneListWidget(QWidget):
         self.list_widget.blockSignals(True)
         self.list_widget.clear()
         for s in scenes:
-            item = QListWidgetItem(f"[{s['frame']}] {s['title']}")
-            item.setData(Qt.UserRole, s['frame'])
+            frame_idx = s['frame']
+            # Получаем таймкод через модель видео (через контроллер)
+            time_str = self.controller.model.get_time_string(frame_idx)
 
-            # ВАЖНО: Разрешаем редактирование элемента
-            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            # Текст для отображения: "00:00:05 [123] Название"
+            display_text = f"{time_str} [{frame_idx}] {s['title']}"
+            item = QListWidgetItem()
+
+            item.setData(ROLE_FRAME_IDX, frame_idx)
+
+            # КЛЮЧЕВОЙ МОМЕНТ:
+            # Для редактирования (EditRole) — ТОЛЬКО название
+            # Храним ЧИСТОЕ имя там, где Qt его не достанет автоматикой
+            item.setData(ROLE_CLEAN_TITLE, s['title'])
+            # Для отображения (DisplayRole) используем полную строку
+            item.setData(Qt.ItemDataRole.DisplayRole, display_text)
+            # print(f"edit data {s['title']} -> {item.data(Qt.ItemDataRole.EditRole)}")
+
+            item.setFlags(item.flags()
+                          | Qt.ItemFlag.ItemIsEditable
+                          | Qt.ItemFlag.ItemIsEnabled
+                          | Qt.ItemFlag.ItemIsSelectable)
 
             self.list_widget.addItem(item)
 
@@ -80,7 +129,7 @@ class SceneListWidget(QWidget):
         item = self.list_widget.currentItem()
         if not item: return
 
-        frame_idx = item.data(Qt.UserRole)
+        frame_idx = item.data(ROLE_FRAME_IDX)
 
         # Переспрашиваем пользователя
         msg = QMessageBox()
@@ -99,7 +148,7 @@ class SceneListWidget(QWidget):
         if not item:
             return
 
-        old_frame_idx = item.data(Qt.UserRole)
+        old_frame_idx = item.data(ROLE_FRAME_IDX)
         new_frame_idx = self.controller.model.current_idx
 
         if old_frame_idx == new_frame_idx:
@@ -117,7 +166,7 @@ class SceneListWidget(QWidget):
         """Вспомогательный метод для выделения нужной строки в списке"""
         for i in range(self.list_widget.count()):
             item = self.list_widget.item(i)
-            if item.data(Qt.UserRole) == frame_idx:
+            if item.data(ROLE_FRAME_IDX) == frame_idx:
                 self.list_widget.setCurrentItem(item)
                 break
 
@@ -136,29 +185,26 @@ class SceneListWidget(QWidget):
         """Теперь вместо диалога просто переводим текущий элемент в режим правки"""
         item = self.list_widget.currentItem()
         if item:
+            # Qt автоматически возьмет данные из EditRole
             self.list_widget.editItem(item)
 
     def _on_item_changed(self, item):
         """Срабатывает, когда пользователь закончил ввод текста в строке"""
-        frame_idx = item.data(Qt.UserRole)
-        full_text = item.text()
+        frame_idx = item.data(ROLE_FRAME_IDX)
+        new_title = item.data(ROLE_CLEAN_TITLE)
 
-        # Нам нужно отделить номер кадра от нового названия
-        # Текст выглядит как "[123] Название"
         try:
-            if "]" in full_text:
-                new_title = full_text.split("]", 1)[1].strip()
-            else:
-                new_title = full_text.strip()
-
-            # Отправляем в контроллер
+            # 1. Отправляем новое имя в контроллер (сохраняем в JSON)
             self.controller.rename_scene(frame_idx, new_title)
+
         except Exception as e:
             self._show_error(f"Ошибка при сохранении имени: {e}")
+            # В случае ошибки можно вызвать refresh_list, чтобы откатить текст к старому
+            # self.refresh_list(self.controller.project.scenes)
 
     def _on_item_double_clicked(self, item):
         # По двойному клику просто переходим к кадру
-        frame_idx = item.data(Qt.UserRole)
+        frame_idx = item.data(ROLE_FRAME_IDX)
         self.controller.seek(frame_idx)
 
     def _show_error(self, message):
