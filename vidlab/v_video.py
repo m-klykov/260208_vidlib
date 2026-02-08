@@ -62,17 +62,34 @@ class VideoWidget(QWidget):
         self.controller.position_changed.connect(self.update_slider)
         self.controller.playing_changed.connect(self.update_play_button)
 
+    def resizeEvent(self, event):
+        """Срабатывает автоматически при изменении размера окна"""
+        super().resizeEvent(event)
+        # Если видео загружено и есть последний кадр — перерисовываем его
+        last_frame = self.controller.model.get_last_frame()
+        if last_frame is not None:
+            self.render_frame(last_frame)
+
     def render_frame(self, frame):
         if frame is None: return
 
-        # Конвертация OpenCV -> PySide
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        h, w, ch = frame.shape
-        img = QImage(frame.data, w, h, ch * w, QImage.Format_RGB888)
+        # Конвертация OpenCV (BGR) -> RGB
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_frame.shape
+        bytes_per_line = ch * w
 
-        pix = QPixmap.fromImage(img)
-        # Масштабируем кадр под размер лейбла с сохранением пропорций
-        self.video_label.setPixmap(pix.scaled(self.video_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        img = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
+
+        # Масштабирование под ТЕКУЩИЙ размер video_label
+        # Используем Qt.KeepAspectRatio для сохранения пропорций
+        pixmap = QPixmap.fromImage(img)
+        scaled_pixmap = pixmap.scaled(
+            self.video_label.size(),
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
+
+        self.video_label.setPixmap(scaled_pixmap)
 
     def update_slider(self, pos):
         # Блокируем сигналы, чтобы перемещение ползунка программно не вызывало seek в контроллере
