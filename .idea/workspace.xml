@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="corret inline editing (only title)">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="go in out nav">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/m_project.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_scene_list.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_scene_list.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_video.py" afterDir="false" />
     </list>
@@ -183,7 +185,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770585537808</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="go in out nav">
+      <option name="closed" value="true" />
+      <created>1770589607728</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1770589607728</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -198,7 +208,8 @@
     <MESSAGE value="in place editing" />
     <MESSAGE value="pip files" />
     <MESSAGE value="corret inline editing (only title)" />
-    <option name="LAST_COMMIT_MESSAGE" value="corret inline editing (only title)" />
+    <MESSAGE value="go in out nav" />
+    <option name="LAST_COMMIT_MESSAGE" value="go in out nav" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

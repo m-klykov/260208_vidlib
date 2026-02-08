@@ -9,6 +9,7 @@ class VideoController(QObject):
     frame_updated = Signal(object) # Передает кадр для отрисовки
     position_changed = Signal(int) # Передает текущий индекс кадра
     playing_changed = Signal(bool)  # True если играет, False если пауза
+    cropped_mode_changed = Signal(bool)  # Сигнал для обновления UI
 
     def __init__(self):
         super().__init__()
@@ -18,17 +19,35 @@ class VideoController(QObject):
         self.timer = QTimer()
         self.timer.timeout.connect(self._play_step)
         self._is_playing = False
+        self.cropped_mode = False
 
     @property
     def is_playing(self):
         return self._is_playing
+
+    def set_cropped_mode(self, enabled):
+        if self.cropped_mode == enabled: return
+
+        self.cropped_mode = enabled
+
+        # Если включили режим, а мы вне диапазона — прыгаем в начало
+        if enabled:
+            in_f = self.get_in_index()
+            out_f = self.get_out_index()
+
+            if self.model.current_idx < in_f or self.model.current_idx > out_f:
+                self.seek(in_f)
+
+        self.cropped_mode_changed.emit(enabled)
+        # Обновляем список и слайдер
+        self.scenes_updated.emit(self.project.scenes)
 
     def load_video(self, path):
         print(f"c: open {path}")
 
         if self.model.open_video(path):
             self.stop()  # Сброс состояния
-            self.seek(0)
+            self.seek(self.model.get_min_index())
             self.video_loaded.emit()  # Уведомляем всех подписанных
 
             # Загружаем сцены из JSON при открытии видео
@@ -62,6 +81,12 @@ class VideoController(QObject):
 
     def seek(self, position):
         self.stop() # Останавливаем при перемотке
+
+        if self.cropped_mode:
+            in_f = self.get_in_index()
+            out_f = self.get_out_index()
+            position = max(in_f, min(position, out_f))
+
         frame = self.model.get_frame(position)
         if frame is not None:
             self.frame_updated.emit(frame)
@@ -78,19 +103,23 @@ class VideoController(QObject):
         self.seek(max(0, curr - 2)) # -2 т.к. после чтения индекс уже смещен вперед
 
     def to_start(self):
-        self.seek(0)
+        self.seek(self.model.get_min_index())
 
     def to_end(self):
-        self.seek(self.model.frame_count - 1)
+        self.seek(self.model.get_max_index())
+
+    def get_in_index(self):
+        return self.project.get_in_frame(self.model.get_min_index())
+
+    def get_out_index(self):
+        return self.project.get_out_frame(self.model.get_max_index())
+
 
     def to_in_point(self):
-        target = self.project.get_in_frame()
-        self.seek(target)
+        self.seek(self.get_in_index())
 
     def to_out_point(self):
-        total = self.model.frame_count
-        target = self.project.get_out_frame(total)
-        self.seek(target)
+        self.seek(self.get_out_index())
 
     def add_current_scene(self):
         idx = self.model.current_idx

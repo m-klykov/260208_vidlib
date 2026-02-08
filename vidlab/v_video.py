@@ -95,6 +95,7 @@ class VideoWidget(QWidget):
         self.controller.frame_updated.connect(self.render_frame)
         self.controller.position_changed.connect(self.update_slider)
         self.controller.playing_changed.connect(self.update_play_button)
+        self.controller.cropped_mode_changed.connect(self.update_slider_range)
 
     def resizeEvent(self, event):
         """Срабатывает автоматически при изменении размера окна"""
@@ -125,11 +126,25 @@ class VideoWidget(QWidget):
 
         self.video_label.setPixmap(scaled_pixmap)
 
+    def update_slider_range(self):
+        if self.controller.cropped_mode:
+            in_f = self.controller.get_in_index()
+            out_f = self.controller.get_out_index()
+        else:
+            in_f = self.controller.model.get_min_index()
+            out_f = self.controller.model.get_max_index()
+
+        self.slider.setRange(in_f, out_f)
+
+        self.btn_start.setVisible(not self.controller.cropped_mode)
+        self.btn_end.setVisible(not self.controller.cropped_mode)
+
+
     def update_slider(self, pos):
         # Блокируем сигналы, чтобы перемещение ползунка программно не вызывало seek в контроллере
         self.slider.blockSignals(True)
         if self.controller.model.frame_count > 0:
-            self.slider.setMaximum(self.controller.model.frame_count - 1)
+            self.update_slider_range()
             # Обновляем правую метку (длительность)
             self.lbl_total.setText(self.controller.model.get_total_timestamp())
         self.slider.setValue(pos)

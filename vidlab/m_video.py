@@ -75,3 +75,10 @@ class VideoModel:
     def get_total_timestamp(self):
         return self.get_full_timestamp(self.frame_count - 1)
 
+
+    def get_min_index(self):
+        return 0
+
+    def get_max_index(self):
+        return max(0,self.frame_count - 1)
+

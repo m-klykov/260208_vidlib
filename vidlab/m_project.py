@@ -58,20 +58,20 @@ class VideoProjectModel:
         self.scenes.sort(key=lambda x: x['frame'])
         self.save_project()
 
-    def get_in_frame(self):
+    def get_in_frame(self, min_index):
         """Возвращает кадр метки IN или 0, если метки нет"""
         for s in self.scenes:
             if s.get('type') == self.TYPE_IN:
                 return s['frame']
-        return 0
+        return min_index
 
-    def get_out_frame(self, total_frames):
+    def get_out_frame(self, max_index):
         """Возвращает кадр метки OUT или последний кадр видео, если метки нет"""
         for s in self.scenes:
             if s.get('type') == self.TYPE_OUT:
                 return s['frame']
         # Если метки нет, возвращаем последний индекс кадра (total - 1)
-        return max(0, total_frames - 1)
+        return max(0, max_index)
 
     def remove_scene(self, frame_idx):
         self.scenes = [s for s in self.scenes if s['frame'] != frame_idx]

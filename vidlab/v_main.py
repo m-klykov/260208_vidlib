@@ -91,6 +91,11 @@ class MainView(QMainWindow):
 
         self.view_menu = menu.addMenu("Вид")
 
+        crop_act = self.view_menu.addAction("Режим обрезки (In/Out)")
+        crop_act.setCheckable(True)
+        crop_act.setShortcut("Ctrl+Shift+C")
+        crop_act.triggered.connect(self.controller.set_cropped_mode)
+
         toggle_scenes_act = self.scene_dock.toggleViewAction()
         toggle_scenes_act.setText("Список сцен")
 

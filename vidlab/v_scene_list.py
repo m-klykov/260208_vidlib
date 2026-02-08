@@ -50,6 +50,8 @@ class SceneListWidget(QWidget):
         # Подписываемся на обновление данных из контроллера
         self.controller.scenes_updated.connect(self.refresh_list)
 
+        self.controller.cropped_mode_changed.connect(self._on_mode_changed)
+
     def _init_ui(self):
         layout = QVBoxLayout(self)
 
@@ -117,9 +119,18 @@ class SceneListWidget(QWidget):
     def refresh_list(self, scenes):
         self.list_widget.blockSignals(True)
         self.list_widget.clear()
+
+        in_f = self.controller.get_in_index()
+        out_f = self.controller.get_out_index()
+
         for s in scenes:
             frame_idx = s['frame']
             m_type = s.get('type', 'scene')
+
+            # В режиме обрезки пропускаем системные метки и всё, что вне диапазона
+            if self.controller.cropped_mode:
+                if frame_idx <= in_f or frame_idx >= out_f:
+                    continue
 
             # Получаем таймкод через модель видео (через контроллер)
             time_str = self.controller.model.get_time_string(frame_idx)
@@ -150,6 +161,11 @@ class SceneListWidget(QWidget):
             self.list_widget.addItem(item)
 
         self.list_widget.blockSignals(False)
+
+    def _on_mode_changed(self, enabled):
+        # Скрываем кнопки установки границ в режиме обрезки
+        self.btn_set_in.setVisible(not enabled)
+        self.btn_set_out.setVisible(not enabled)
 
     def _on_delete(self):
         item = self.list_widget.currentItem()
