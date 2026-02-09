@@ -4,6 +4,7 @@ from PySide6.QtCore import QObject, QTimer, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 
 from .m_project import VideoProjectModel
+from .m_project_ext import VideoProjectExtModel
 from .m_video import VideoModel
 
 class VideoController(QObject):
@@ -17,7 +18,7 @@ class VideoController(QObject):
     def __init__(self):
         super().__init__()
         self.model = VideoModel()
-        self.project = VideoProjectModel()  # Модель для JSON
+        self.project = VideoProjectExtModel()  # Модель для JSON
 
         self.timer = QTimer()
         self.timer.timeout.connect(self._play_step)

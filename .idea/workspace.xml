@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="add icons as emodji">
-      <change afterPath="$PROJECT_DIR$/vidlab/v_histogram.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="histogram">
+      <change afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vidlab/f_levels.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_video.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_histogram.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_histogram.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,18 +27,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "m-klykov"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;m-klykov&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/m-klykov/260208_vidlib.git",
-    "accountId": "477c940f-dcf7-4ff1-863e-8598fb9810bb"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/m-klykov/260208_vidlib.git&quot;,
+    &quot;accountId&quot;: &quot;477c940f-dcf7-4ff1-863e-8598fb9810bb&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -46,14 +48,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="260208_vidlib" />
@@ -214,7 +216,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770598110743</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="histogram">
+      <option name="closed" value="true" />
+      <created>1770604014188</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1770604014188</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -233,7 +243,8 @@
     <MESSAGE value="crop in out mode" />
     <MESSAGE value="make screenshots + toolbar" />
     <MESSAGE value="add icons as emodji" />
-    <option name="LAST_COMMIT_MESSAGE" value="add icons as emodji" />
+    <MESSAGE value="histogram" />
+    <option name="LAST_COMMIT_MESSAGE" value="histogram" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

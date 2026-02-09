@@ -21,7 +21,7 @@ class HistogramWidget(QWidget):
             return
 
         self.hist_data = self.controller.model.get_histogram()
-        print('has hist')
+        # print('has hist')
         self.update()  # Вызывает paintEvent
 
     def paintEvent(self, event):
