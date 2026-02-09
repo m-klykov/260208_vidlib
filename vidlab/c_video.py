@@ -86,23 +86,24 @@ class VideoController(QObject):
                 processed = f.process(processed, frame_idx)
         return processed
 
-    def _play_step(self):
-        frame = self.model.get_frame()
+    def _process_and_out_frame(self,frame):
         if frame is not None:
             frame_idx = self.model.get_current_index()
             frame = self.get_processed_frame(frame, frame_idx)
             self.frame_updated.emit(frame)
             self.position_changed.emit(frame_idx)
+
+    def _play_step(self):
+        frame = self.model.get_frame()
+        if frame is not None:
+            self._process_and_out_frame(frame)
         else:
             self.stop()
 
     def refresh_current_frame(self):
         frame = self.model.last_frame
         if frame is not None:
-            frame_idx = self.model.get_current_index()
-            frame = self.get_processed_frame(frame, frame_idx)
-            self.frame_updated.emit(frame)
-            self.position_changed.emit(frame_idx)
+            self._process_and_out_frame(frame)
 
 
     def seek(self, position):
@@ -115,10 +116,15 @@ class VideoController(QObject):
 
         frame = self.model.get_frame(position)
         if frame is not None:
-            frame_idx = self.model.get_current_index()
-            frame = self.get_processed_frame(frame, frame_idx)
-            self.frame_updated.emit(frame)
-            self.position_changed.emit(position)
+            self._process_and_out_frame(frame)
+
+    def draw_filters_overlay(self, painter, viewport_rect):
+        # Ищем фильтр, который сейчас выбран (в фокусе)
+        for f in self.project.filters:
+            if f.focused:
+                # Передаем управление фильтру
+                f.render_overlay(painter, self.model.get_current_index(), viewport_rect)
+                break
 
     def step_forward(self):
         self.stop()

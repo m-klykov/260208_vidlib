@@ -2,6 +2,8 @@ import json
 import os
 
 from .f_base import FilterBase
+from .f_bw import FilterBW
+from .f_crop import FilterCrop
 from .f_levels import FilterLevels
 from .m_project import VideoProjectModel
 
@@ -13,8 +15,9 @@ class VideoProjectExtModel(VideoProjectModel):
 
         # Реестр доступных классов фильтров (Имя -> Класс)
         self.filter_registry = {
-            "Levels": FilterLevels,  # Заменится на реальный класс при импорте
-            # "Black and White": None,
+            "Levels": FilterLevels,
+            "Black and White": FilterBW,
+            "Crop": FilterCrop,
         }
 
     def load_project(self, video_path):
