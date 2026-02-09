@@ -10,6 +10,7 @@ from .v_scene_list import SceneListWidget
 from .v_video import VideoWidget
 from .c_video import VideoController
 from .m_config import WIN_W, WIN_H, APP_NAME, APP_VER
+from .v_histogram import HistogramWidget  # Импорт внутри, если нужно
 
 
 class MainView(QMainWindow):
@@ -52,6 +53,20 @@ class MainView(QMainWindow):
         self.scene_dock.setWidget(self.scene_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.scene_dock)
         self.scene_dock.hide()
+
+        # --- НОВОЕ: Док с гистограммой ---
+        self.hist_dock = QDockWidget("📊 Гистограмма", self)
+        self.hist_dock.setObjectName("HistogramDock")
+        self.hist_dock.setAllowedAreas(Qt.AllDockWidgetAreas)
+
+        # Создаем наш виджет гистограммы
+
+        self.hist_widget = HistogramWidget(self.controller)
+        self.hist_dock.setWidget(self.hist_widget)
+
+        # Размещаем её справа. Если scene_dock тоже виден, они поделят место
+        self.addDockWidget(Qt.RightDockWidgetArea, self.hist_dock)
+        self.hist_dock.hide()
 
         # --- СТРОКА СОСТОЯНИЯ ---
         self.status_bar = self.statusBar()
@@ -143,6 +158,13 @@ class MainView(QMainWindow):
         self.act_open_folder.triggered.connect(self.controller.open_video_folder)
         self.toolbar.addAction(self.act_open_folder)
 
+        self.toolbar.addSeparator()
+
+        self.act_hist = QAction("📊 Hist", self)
+        self.act_hist.setCheckable(True)
+        self.act_hist.triggered.connect(self._toggle_histogram)
+        self.toolbar.addAction(self.act_hist)
+
     def _make_screenshot(self):
         res = self.controller.make_screenshot()
         # print("Скриншот")
@@ -208,3 +230,11 @@ class MainView(QMainWindow):
         # Сохраняем размеры окна, положение Dock-панелей и их видимость
         self.settings.save_geometry(self.saveGeometry(), self.saveState())
         super().closeEvent(event)
+
+    def _toggle_histogram(self, checked):
+        if checked:
+            self.hist_dock.show()
+            # Сразу обновляем данные из self.last_frame
+            self.hist_widget.update_data()
+        else:
+            self.hist_dock.hide()
