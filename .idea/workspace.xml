@@ -4,13 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="histogram">
-      <change afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/vidlab/f_levels.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="filter platform">
+      <change afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_video.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_histogram.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_histogram.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -224,7 +225,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770604014188</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="filter platform">
+      <option name="closed" value="true" />
+      <created>1770667205661</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1770667205662</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -244,7 +253,8 @@
     <MESSAGE value="make screenshots + toolbar" />
     <MESSAGE value="add icons as emodji" />
     <MESSAGE value="histogram" />
-    <option name="LAST_COMMIT_MESSAGE" value="histogram" />
+    <MESSAGE value="filter platform" />
+    <option name="LAST_COMMIT_MESSAGE" value="filter platform" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

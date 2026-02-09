@@ -91,13 +91,15 @@ class VideoModel:
         # Сохраняем (OpenCV сам поймет формат по расширению .png)
         return cv2.imwrite(path, self.last_frame)
 
-    def get_histogram(self):
+    def get_histogram(self,frame = None):
         # Работаем с кадром, который уже считан и лежит в памяти
-        if self.last_frame is None:
+        if frame is None:
+            frame = self.last_frame
+        if frame is None:
             return None
 
         # Конвертируем наш BGR кадр в градации серого
-        gray = cv2.cvtColor(self.last_frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Считаем гистограмму яркости
         hist = cv2.calcHist([gray], [0], None, [256], [0, 256])

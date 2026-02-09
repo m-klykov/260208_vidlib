@@ -10,6 +10,7 @@ from .m_video import VideoModel
 class VideoController(QObject):
     video_loaded = Signal()  # Сигнал без параметров, так как View сама возьмет данные из модели
     scenes_updated = Signal(list) # сигнал для обновления виджета сцен
+    filters_updated = Signal() # изменились фильтры
     frame_updated = Signal(object) # Передает кадр для отрисовки
     position_changed = Signal(int) # Передает текущий индекс кадра
     playing_changed = Signal(bool)  # True если играет, False если пауза
@@ -57,6 +58,7 @@ class VideoController(QObject):
             # Загружаем сцены из JSON при открытии видео
             scenes = self.project.load_project(path)
             self.scenes_updated.emit(scenes)  # Сообщаем View, что сцены загружены
+            self.filters_updated.emit()
 
             return True
         return False
@@ -75,13 +77,33 @@ class VideoController(QObject):
         self.timer.stop()
         self.playing_changed.emit(False)
 
+    # Пример логики в контроллере/плеере
+    def get_processed_frame(self, raw_frame, frame_idx):
+        processed = raw_frame.copy()
+        # Прогоняем через все включенные фильтры в порядке их следования в списке
+        for f in self.project.filters:
+            if f.enabled:
+                processed = f.process(processed, frame_idx)
+        return processed
+
     def _play_step(self):
         frame = self.model.get_frame()
         if frame is not None:
+            frame_idx = self.model.get_current_index()
+            frame = self.get_processed_frame(frame, frame_idx)
             self.frame_updated.emit(frame)
-            self.position_changed.emit(self.model.get_current_index())
+            self.position_changed.emit(frame_idx)
         else:
             self.stop()
+
+    def refresh_current_frame(self):
+        frame = self.model.last_frame
+        if frame is not None:
+            frame_idx = self.model.get_current_index()
+            frame = self.get_processed_frame(frame, frame_idx)
+            self.frame_updated.emit(frame)
+            self.position_changed.emit(frame_idx)
+
 
     def seek(self, position):
         self.stop() # Останавливаем при перемотке
@@ -93,6 +115,8 @@ class VideoController(QObject):
 
         frame = self.model.get_frame(position)
         if frame is not None:
+            frame_idx = self.model.get_current_index()
+            frame = self.get_processed_frame(frame, frame_idx)
             self.frame_updated.emit(frame)
             self.position_changed.emit(position)
 

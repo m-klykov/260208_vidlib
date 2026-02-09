@@ -15,12 +15,12 @@ class HistogramWidget(QWidget):
         # Подписываемся на обновление кадра
         self.controller.frame_updated.connect(self.update_data)
 
-    def update_data(self):
+    def update_data(self,frame):
         # ГЛАВНАЯ ОПТИМИЗАЦИЯ: если виджет скрыт, не тратим ресурсы CPU/GPU
         if not self.isVisible():
             return
 
-        self.hist_data = self.controller.model.get_histogram()
+        self.hist_data = self.controller.model.get_histogram(frame)
         # print('has hist')
         self.update()  # Вызывает paintEvent
 
@@ -33,8 +33,9 @@ class HistogramWidget(QWidget):
 
         painter.fillRect(self.rect(), QColor(30, 30, 30, 200))
 
-        w = self.width()
-        h = self.height()
+        margin = 5
+        w = self.width() - margin * 2
+        h = self.height() - margin * 2
         n = len(self.hist_data)
         bar_w = w / n
 
@@ -43,9 +44,9 @@ class HistogramWidget(QWidget):
 
         for i, val in enumerate(self.hist_data):
             # Приводим к int, чтобы PySide не ругался на типы
-            x = int(i * bar_w)
+            x = margin + int(i * bar_w)
             bar_h = int(val * h)
-            y = int(h - bar_h)
+            y = margin + int(h - bar_h)
             width = int(bar_w + 1)
 
             painter.drawRect(x, y, width, bar_h)

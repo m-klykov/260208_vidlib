@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, QTimer
 
 from .m_config import APP_NAME
 from .m_settings import SettingsModel
+from .v_filter_man import FilterManagerWidget
 from .v_scene_list import SceneListWidget
 from .v_video import VideoWidget
 from .c_video import VideoController
@@ -53,6 +54,14 @@ class MainView(QMainWindow):
         self.scene_dock.setWidget(self.scene_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.scene_dock)
         self.scene_dock.hide()
+
+        # В _init_ui основного окна:
+        self.filter_dock = QDockWidget("✨ Фильтры и Эффекты", self)
+        self.filter_dock.setObjectName("FilterDock")
+        self.filter_manager_widget = FilterManagerWidget(self.controller)
+        self.filter_dock.setWidget(self.filter_manager_widget)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.filter_dock)  # Слева, например
+        self.filter_dock.hide()
 
         # --- НОВОЕ: Док с гистограммой ---
         self.hist_dock = QDockWidget("📊 Гистограмма", self)
@@ -114,8 +123,11 @@ class MainView(QMainWindow):
 
         toggle_scenes_act = self.scene_dock.toggleViewAction()
         toggle_scenes_act.setText("Список сцен")
-
         self.view_menu.addAction(toggle_scenes_act)
+
+        toggle_filter_man = self.filter_dock.toggleViewAction()
+        toggle_filter_man.setText("✨ Фильтры")
+        self.view_menu.addAction(toggle_filter_man)
 
     def _update_recent_files_menu(self):
         self.recent_menu.clear()

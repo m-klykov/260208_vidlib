@@ -2,6 +2,7 @@ import json
 import os
 
 from .f_base import FilterBase
+from .f_levels import FilterLevels
 from .m_project import VideoProjectModel
 
 
@@ -12,8 +13,8 @@ class VideoProjectExtModel(VideoProjectModel):
 
         # Реестр доступных классов фильтров (Имя -> Класс)
         self.filter_registry = {
-            "Scene Detector": None,  # Заменится на реальный класс при импорте
-            "Black and White": None,
+            "Levels": FilterLevels,  # Заменится на реальный класс при импорте
+            # "Black and White": None,
         }
 
     def load_project(self, video_path):
@@ -83,3 +84,12 @@ class VideoProjectExtModel(VideoProjectModel):
                 json.dump(full_data, f, ensure_ascii=False, indent=4)
         except Exception as e:
             print(f"Ошибка сохранения расширенного проекта: {e}")
+
+    def move_filter(self, index, direction):
+        """direction: -1 (вверх), 1 (вниз)"""
+        new_idx = index + direction
+        if 0 <= new_idx < len(self.filters):
+            self.filters[index], self.filters[new_idx] = self.filters[new_idx], self.filters[index]
+            self.save_project()
+            return True
+        return False
