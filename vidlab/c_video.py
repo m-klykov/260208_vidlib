@@ -1,6 +1,7 @@
 import os
 
-from PySide6.QtCore import QObject, QTimer, Signal
+from PySide6.QtCore import QObject, QTimer, Signal, QUrl
+from PySide6.QtGui import QDesktopServices
 
 from .m_project import VideoProjectModel
 from .m_video import VideoModel
@@ -179,4 +180,13 @@ class VideoController(QObject):
         else:
             print("Ошибка сохранения скриншота")
             return ''
+
+    def open_video_folder(self):
+        """Открывает папку, в которой лежит текущее видео"""
+        if not self.model.file_path:
+            return
+
+        folder = os.path.dirname(self.model.file_path)
+        # Кроссплатформенный способ открыть папку в проводнике
+        QDesktopServices.openUrl(QUrl.fromLocalFile(folder))
 

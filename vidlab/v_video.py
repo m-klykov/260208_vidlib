@@ -61,7 +61,7 @@ class VideoWidget(QWidget):
         self.btn_go_in = QPushButton("In<")  # К началу области
         self.btn_go_in.setToolTip("Перейти к началу области (In)")
         self.btn_back = QPushButton("<")
-        self.btn_play = QPushButton("Play")
+        self.btn_play = QPushButton("▶ Play")
         self.btn_forward = QPushButton(">")
         self.btn_go_out = QPushButton(">Out")  # К концу области
         self.btn_go_out.setToolTip("Перейти к концу области (Out)")
@@ -155,7 +155,7 @@ class VideoWidget(QWidget):
         self.lbl_time.setText(timestamp)
 
     def update_play_button(self, is_playing):
-        self.btn_play.setText("Pause" if is_playing else "Play")
+        self.btn_play.setText("⏸ Pause" if is_playing else "▶ Play")
 
     def _on_slider_changed(self, value):
         # Вызываем seek только если изменение пришло от пользователя (мышка/клавиатура)

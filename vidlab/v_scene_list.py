@@ -79,14 +79,14 @@ class SceneListWidget(QWidget):
         btns_container = QWidget()
         btns = FlowLayout(btns_container, margin=0, spacing=5)
 
-        self.btn_add = QPushButton("Add")
+        self.btn_add = QPushButton("➕Add")
         self.btn_add.setToolTip("Добавить метку на текущем кадре")
 
-        self.btn_relocate = QPushButton("Move")  # Новая кнопка
+        self.btn_relocate = QPushButton("📍 Move")  # Новая кнопка
         self.btn_relocate.setToolTip("Переместить выбранную метку на текущий кадр видео")
 
-        self.btn_rename = QPushButton("Rename")
-        self.btn_del = QPushButton("Delete")
+        self.btn_rename = QPushButton("✏️ Rename")
+        self.btn_del = QPushButton("🗑 Delete")
 
         # Новые кнопки
         self.btn_set_in = QPushButton("[ Set In")

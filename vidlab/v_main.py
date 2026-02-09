@@ -78,11 +78,11 @@ class MainView(QMainWindow):
     def _create_menu(self):
         menu = self.menuBar()
         file_menu = menu.addMenu("Файл")
-        open_act = file_menu.addAction("Открыть")
+        open_act = file_menu.addAction("📂 Открыть")
         open_act.setShortcut("Ctrl+O")
         open_act.triggered.connect(self._open_file_dialog)
 
-        last_act = file_menu.addAction("Открыть последний")
+        last_act = file_menu.addAction("🕒 Открыть последний")
         last_act.setShortcut("Ctrl+L")
         last_act.triggered.connect(self._load_most_recent_file)
 
@@ -92,7 +92,7 @@ class MainView(QMainWindow):
 
         self.view_menu = menu.addMenu("Вид")
 
-        crop_act = self.view_menu.addAction("Режим обрезки (In/Out)")
+        crop_act = self.view_menu.addAction("✂️ Режим обрезки (In/Out)")
         crop_act.setCheckable(True)
         crop_act.setShortcut("Ctrl+Shift+C")
         crop_act.triggered.connect(self.controller.set_cropped_mode)
@@ -120,15 +120,28 @@ class MainView(QMainWindow):
         self.toolbar.setMovable(False)  # Чтобы случайно не оторвали
         self.addToolBar(self.toolbar)
 
+        # 1. Кнопка "Открыть последний проект"
+        self.act_load_last = QAction("🕒 Last Video", self)
+        self.act_load_last.setToolTip("Загрузить последний открытый файл (Ctrl+L)")
+        self.act_load_last.triggered.connect(self._load_most_recent_file)
+        self.toolbar.addAction(self.act_load_last)
+
+        self.toolbar.addSeparator()
+
         # Кнопка Скриншота
         # Если есть иконка: QIcon("path/to/icon.png")
         self.act_screenshot = QAction("📸 Screenshot", self)
         self.act_screenshot.setShortcut("Ctrl+S")
         # self.act_screenshot.setStatusTip("Сохранить текущий кадр в папку с видео")
         self.act_screenshot.triggered.connect(self._make_screenshot)
-
         self.toolbar.addAction(self.act_screenshot)
         self.toolbar.addSeparator()
+
+        # 3. Кнопка "Открыть папку"
+        self.act_open_folder = QAction("📂 Open Folder", self)
+        self.act_open_folder.setToolTip("Открыть папку с видео и скриншотами")
+        self.act_open_folder.triggered.connect(self.controller.open_video_folder)
+        self.toolbar.addAction(self.act_open_folder)
 
     def _make_screenshot(self):
         res = self.controller.make_screenshot()
