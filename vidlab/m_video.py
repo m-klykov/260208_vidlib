@@ -82,3 +82,12 @@ class VideoModel:
     def get_max_index(self):
         return max(0,self.frame_count - 1)
 
+    def save_screenshot(self, path):
+        """Сохраняет текущий кадр по указанному пути"""
+        if self.last_frame is None:
+            return False
+
+        # Сохраняем (OpenCV сам поймет формат по расширению .png)
+        return cv2.imwrite(path, self.last_frame)
+
+

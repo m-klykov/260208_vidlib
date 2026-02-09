@@ -1,7 +1,7 @@
 import os
 
 from PySide6.QtGui import QAction, QShortcut, QKeySequence
-from PySide6.QtWidgets import QMainWindow, QDockWidget, QFileDialog, QLabel
+from PySide6.QtWidgets import QMainWindow, QDockWidget, QFileDialog, QLabel, QToolBar
 from PySide6.QtCore import Qt, QTimer
 
 from .m_config import APP_NAME
@@ -27,6 +27,7 @@ class MainView(QMainWindow):
 
         self._init_ui()
         self._create_menu()
+        self._create_toolbar()
 
         # Создаем горячую клавишу Ctrl+L
         # self.shortcut_last_file = QShortcut(QKeySequence("Ctrl+L"), self)
@@ -113,6 +114,29 @@ class MainView(QMainWindow):
             # Используем лямбду для передачи пути в контроллер
             action.triggered.connect(lambda chk=False, p=f_path: self._load_recent(p))
             self.recent_menu.addAction(action)
+
+    def _create_toolbar(self):
+        self.toolbar = QToolBar("Main Toolbar")
+        self.toolbar.setMovable(False)  # Чтобы случайно не оторвали
+        self.addToolBar(self.toolbar)
+
+        # Кнопка Скриншота
+        # Если есть иконка: QIcon("path/to/icon.png")
+        self.act_screenshot = QAction("📸 Screenshot", self)
+        self.act_screenshot.setShortcut("Ctrl+S")
+        # self.act_screenshot.setStatusTip("Сохранить текущий кадр в папку с видео")
+        self.act_screenshot.triggered.connect(self._make_screenshot)
+
+        self.toolbar.addAction(self.act_screenshot)
+        self.toolbar.addSeparator()
+
+    def _make_screenshot(self):
+        res = self.controller.make_screenshot()
+        # print("Скриншот")
+        if res:
+            self.show_status_msg(f'Screenshot in "{res}"')
+            print(f'Screenshot in "{res}"')
+
 
     def on_video_loaded(self):
         """Вызывается, когда контроллер успешно загрузил видео"""

@@ -1,3 +1,5 @@
+import os
+
 from PySide6.QtCore import QObject, QTimer, Signal
 
 from .m_project import VideoProjectModel
@@ -155,4 +157,26 @@ class VideoController(QObject):
         # Модель сама разберется с удалением дубликатов типа
         self.project.add_special_mark(idx, m_type)
         self.scenes_updated.emit(self.project.scenes)
+
+    def make_screenshot(self):
+        if not self.model.file_path:
+            return
+
+        # Получаем директорию, имя файла без расширения и номер кадра
+        dir_path = os.path.dirname(self.model.file_path)
+        base_name = os.path.splitext(os.path.basename(self.model.file_path))[0]
+        frame_idx = self.model.current_idx
+
+        # Формируем путь: "путь/имя_кадр.png"
+        filename = f"{base_name}_{frame_idx}.png"
+        full_path = os.path.join(dir_path, filename)
+
+        if self.model.save_screenshot(full_path):
+            print(f"Скриншот сохранен: {full_path}")
+            # Можно отправить сигнал для уведомления в статус-баре
+            # self.status_message.emit(f"Сохранено: {filename}")
+            return full_path
+        else:
+            print("Ошибка сохранения скриншота")
+            return ''
 
