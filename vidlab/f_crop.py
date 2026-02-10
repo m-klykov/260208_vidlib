@@ -12,6 +12,10 @@ class FilterCrop(FilterBase):
         if not self.params:
             self.params = {"top": 0, "bottom": 0, "left": 0, "right": 0}
 
+        self.active_side = None  # Сторона, на которую навели или которую тянем
+        self.is_dragging = False
+        self.margin = 10  # Зона чувствительности в пикселях
+
     def get_params_metadata(self):
         return {
             "top": {"type": "int", "min": 0, "max": 49, "default": 0},
@@ -45,6 +49,8 @@ class FilterCrop(FilterBase):
         if self.focused and not self.enabled:
             h = viewport_rect.height()
             w = viewport_rect.width()
+            sx = viewport_rect.left()
+            sy = viewport_rect.top()
 
             # Считаем координаты рамки в пикселях виджета
             t = h * (self.params.get("top", 0) / 100)
@@ -57,10 +63,73 @@ class FilterCrop(FilterBase):
             painter.setPen(pen)
 
             # Рисуем прямоугольник обрезки
-            painter.drawRect(l, t, w - l - r, h - t - b)
+            painter.drawRect(sx + l, #viewport_rect.left +
+                             sy + t, # viewport_rect.top +
+                             w - l - r, h - t - b)
 
             # Затемняем области, которые будут отрезаны
-            painter.fillRect(0, 0, w, t, QColor(0, 0, 0, 100))  # Top
-            painter.fillRect(0, h - b, w, b, QColor(0, 0, 0, 100))  # Bottom
-            painter.fillRect(0, t, l, h - t - b, QColor(0, 0, 0, 100))  # Left
-            painter.fillRect(w - r, t, r, h - t - b, QColor(0, 0, 0, 100))  # Right
+            painter.fillRect(sx, sy, w, t, QColor(0, 0, 0, 100))  # Top
+            painter.fillRect(sx, sy + h - b, w, b, QColor(0, 0, 0, 100))  # Bottom
+            painter.fillRect(sx, sy + t, l, h - t - b, QColor(0, 0, 0, 100))  # Left
+            painter.fillRect(sx + w - r, sy + t, r, h - t - b, QColor(0, 0, 0, 100))
+            # Right
+
+    def _get_coords(self, rect):
+        """Вспомогательный метод для получения координат линий в пикселях"""
+        w, h = rect.width(), rect.height()
+        x, y = rect.left(), rect.top()
+        return {
+            'left': x + w * (self.params['left'] / 100),
+            'right': x + w - (w * (self.params['right'] / 100)),
+            'top': y + h * (self.params['top'] / 100),
+            'bottom': y + h - (h * (self.params['bottom'] / 100))
+        }
+
+    def handle_mouse_move(self, pos, rect):
+        if self.enabled: return Qt.ArrowCursor
+
+        coords = self._get_coords(rect)
+
+        if not self.is_dragging:
+            # Проверяем наведение (Hover)
+            self.active_side = None
+            if abs(pos.x() - coords['left']) < self.margin:
+                self.active_side = 'left'
+            elif abs(pos.x() - coords['right']) < self.margin:
+                self.active_side = 'right'
+            elif abs(pos.y() - coords['top']) < self.margin:
+                self.active_side = 'top'
+            elif abs(pos.y() - coords['bottom']) < self.margin:
+                self.active_side = 'bottom'
+
+            # Возвращаем нужный курсор
+            if self.active_side in ['left', 'right']: return Qt.SizeHorCursor
+            if self.active_side in ['top', 'bottom']: return Qt.SizeVerCursor
+            return Qt.ArrowCursor
+
+        else:
+            # Логика перетаскивания (Drag)
+            w, h = rect.width(), rect.height()
+            x, y = rect.left(), rect.top()
+
+            if self.active_side == 'left':
+                val = (pos.x() - x) / w * 100
+                self.params['left'] = max(0, min(val, 100 - self.params['right'] - 1))
+            elif self.active_side == 'right':
+                val = (x + w - pos.x()) / w * 100
+                self.params['right'] = max(0, min(val, 100 - self.params['left'] - 1))
+            elif self.active_side == 'top':
+                val = (pos.y() - y) / h * 100
+                self.params['top'] = max(0, min(val, 100 - self.params['bottom'] - 1))
+            elif self.active_side == 'bottom':
+                val = (y + h - pos.y()) / h * 100
+                self.params['bottom'] = max(0, min(val, 100 - self.params['top'] - 1))
+
+            return Qt.SizeHorCursor if self.active_side in ['left', 'right'] else Qt.SizeVerCursor
+
+    def handle_mouse_press(self, pos, rect):
+        if self.active_side:
+            self.is_dragging = True
+
+    def handle_mouse_release(self):
+        self.is_dragging = False

@@ -1,7 +1,7 @@
 import os
 
 from PySide6.QtCore import QObject, QTimer, Signal, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, Qt
 
 from .m_project import VideoProjectModel
 from .m_project_ext import VideoProjectExtModel
@@ -125,6 +125,32 @@ class VideoController(QObject):
                 # Передаем управление фильтру
                 f.render_overlay(painter, self.model.get_current_index(), viewport_rect)
                 break
+
+    def handle_mouse_move(self, pos, target_rect):
+        # Ищем фильтр, который сейчас выбран (в фокусе)
+        for f in self.project.filters:
+            if f.focused:
+                # Передаем управление фильтру
+                return f.handle_mouse_move(pos, target_rect)
+                break
+        return Qt.ArrowCursor
+
+    def handle_mouse_press(self, pos, rect):
+        # Ищем фильтр, который сейчас выбран (в фокусе)
+        for f in self.project.filters:
+            if f.focused:
+                # Передаем управление фильтру
+                f.handle_mouse_press(pos, rect)
+                break
+
+    def handle_mouse_release(self):
+        # Ищем фильтр, который сейчас выбран (в фокусе)
+        for f in self.project.filters:
+            if f.focused:
+                # Передаем управление фильтру
+                f.handle_mouse_release()
+                break
+
 
     def step_forward(self):
         self.stop()

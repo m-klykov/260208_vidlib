@@ -4,6 +4,8 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QImage, QPixmap
 from .c_video import VideoController
 from .m_video import VideoModel
+from .v_video_display import VideoDisplay
+
 
 class VideoWidget(QWidget):
     def __init__(self, controller):
@@ -20,14 +22,11 @@ class VideoWidget(QWidget):
         layout = QVBoxLayout(self)
 
         # Экран
-        self.video_label = QLabel("Загрузите видео")
-        self.video_label.setAlignment(Qt.AlignCenter)
-        self.video_label.setStyleSheet("background-color: black;")
-        self.video_label.setMinimumSize(640, 360)
-        # Важно: разрешаем лейблу сжиматься и растягиваться во все стороны
-        self.video_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        layout.addWidget(self.video_label)
+        # ЗАМЕНА: Вместо QLabel используем наш новый дисплей
+        self.video_display = VideoDisplay(self.controller)
+        self.video_display.setMinimumSize(640, 360)
+        self.video_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        layout.addWidget(self.video_display)
 
         # Ряд со слайдером и временем
         slider_layout = QHBoxLayout()
@@ -108,23 +107,13 @@ class VideoWidget(QWidget):
     def render_frame(self, frame):
         if frame is None: return
 
-        # Конвертация OpenCV (BGR) -> RGB
+        # Конвертация BGR -> RGB
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb_frame.shape
-        bytes_per_line = ch * w
+        img = QImage(rgb_frame.data, w, h, ch * w, QImage.Format_RGB888)
 
-        img = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
-
-        # Масштабирование под ТЕКУЩИЙ размер video_label
-        # Используем Qt.KeepAspectRatio для сохранения пропорций
-        pixmap = QPixmap.fromImage(img)
-        scaled_pixmap = pixmap.scaled(
-            self.video_label.size(),
-            Qt.KeepAspectRatio,
-            Qt.SmoothTransformation
-        )
-
-        self.video_label.setPixmap(scaled_pixmap)
+        # Просто отдаем пиксмап дисплею
+        self.video_display.set_pixmap(QPixmap.fromImage(img))
 
     def update_slider_range(self):
         if self.controller.cropped_mode:

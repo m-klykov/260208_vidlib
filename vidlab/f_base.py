@@ -1,7 +1,13 @@
 import os
 import json
 
-class FilterBase:
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtGui import Qt
+
+
+class FilterBase(QObject):
+    params_changed = Signal()
+
     def __init__(self, num, cache_dir, params=None):
         self.name = "Base Filter"  # Переопределяется в потомках
         self.num = num
@@ -43,3 +49,12 @@ class FilterBase:
     def get_timeline_data(self):
         """Данные для отрисовки на таймлайне (диапазоны, метки)"""
         return {"ranges": [], "marks": []}
+
+    def handle_mouse_move(self, pos, rect):
+        return Qt.ArrowCursor
+
+    def handle_mouse_press(self, pos, rect):
+        pass
+
+    def handle_mouse_release(self):
+        pass
