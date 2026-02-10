@@ -1,9 +1,9 @@
 import cv2
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QSizePolicy
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtGui import Qt, QImage, QPixmap
 from .c_video import VideoController
 from .m_video import VideoModel
+from .v_timeline import TimelineWidget
 from .v_video_display import VideoDisplay
 
 
@@ -40,8 +40,10 @@ class VideoWidget(QWidget):
         self.lbl_time.setMinimumWidth(120)  # Чтобы слайдер не прыгал при смене цифр
 
         # Слайдер
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setFocusPolicy(Qt.StrongFocus)  # Слайдер может принимать фокус
+        # self.slider = QSlider(Qt.Horizontal)
+        # self.slider.setFocusPolicy(Qt.StrongFocus)  # Слайдер может принимать фокус
+        self.timeline = TimelineWidget(self.controller)
+        self.timeline.setFocusPolicy(Qt.StrongFocus)
 
         # Правый индикатор (общая длительность)
         self.lbl_total = QLabel("0 (00:00:00.00)")
@@ -50,7 +52,8 @@ class VideoWidget(QWidget):
         # self.lbl_total.setAlignment(Qt.AlignRight)
 
         slider_layout.addWidget(self.lbl_time)
-        slider_layout.addWidget(self.slider)
+        # slider_layout.addWidget(self.slider)
+        slider_layout.addWidget(self.timeline)
         slider_layout.addWidget(self.lbl_total)
         layout.addLayout(slider_layout)
 
@@ -88,7 +91,7 @@ class VideoWidget(QWidget):
         self.btn_go_out.clicked.connect(self.controller.to_out_point)
 
         # Слайдер
-        self.slider.valueChanged.connect(self._on_slider_changed)
+        # self.slider.valueChanged.connect(self._on_slider_changed)
 
         # От контроллера к UI
         self.controller.frame_updated.connect(self.render_frame)
@@ -123,7 +126,8 @@ class VideoWidget(QWidget):
             in_f = self.controller.model.get_min_index()
             out_f = self.controller.model.get_max_index()
 
-        self.slider.setRange(in_f, out_f)
+        # self.slider.setRange(in_f, out_f)
+        self.timeline.update()
 
         self.btn_start.setVisible(not self.controller.cropped_mode)
         self.btn_end.setVisible(not self.controller.cropped_mode)
@@ -131,13 +135,16 @@ class VideoWidget(QWidget):
 
     def update_slider(self, pos):
         # Блокируем сигналы, чтобы перемещение ползунка программно не вызывало seek в контроллере
-        self.slider.blockSignals(True)
+        # self.slider.blockSignals(True)
         if self.controller.model.frame_count > 0:
-            self.update_slider_range()
+            # self.update_slider_range()
             # Обновляем правую метку (длительность)
             self.lbl_total.setText(self.controller.model.get_total_timestamp())
-        self.slider.setValue(pos)
-        self.slider.blockSignals(False)
+        # self.slider.setValue(pos)
+        # self.slider.blockSignals(False)
+
+        # Заставляем таймлайн перерисовать Playhead на новой позиции
+        self.timeline.update()
 
         # Обновляем текстовый индикатор
         timestamp = self.controller.model.get_full_timestamp(pos)

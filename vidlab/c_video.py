@@ -15,6 +15,7 @@ class VideoController(QObject):
     position_changed = Signal(int) # Передает текущий индекс кадра
     playing_changed = Signal(bool)  # True если играет, False если пауза
     cropped_mode_changed = Signal(bool)  # Сигнал для обновления UI
+    filter_params_changed = Signal() # параметры филльтра изменены мышкой в видео окне
 
     def __init__(self):
         super().__init__()
@@ -126,13 +127,25 @@ class VideoController(QObject):
                 f.render_overlay(painter, self.model.get_current_index(), viewport_rect)
                 break
 
+    def get_active_filter_timeline_data(self):
+        """Просто возвращает данные для отрисовки от сфокусированного фильтра"""
+        for f in self.project.filters:
+            if f.focused:
+                return f.get_timeline_data()
+        return {"marks": [], "ranges": []}
+
     def handle_mouse_move(self, pos, target_rect):
         # Ищем фильтр, который сейчас выбран (в фокусе)
         for f in self.project.filters:
             if f.focused:
                 # Передаем управление фильтру
-                return f.handle_mouse_move(pos, target_rect)
-                break
+                curs, params_changes = f.handle_mouse_move(pos, target_rect)
+
+                if params_changes:
+                    self.filter_params_changed.emit()
+
+                return curs
+
         return Qt.ArrowCursor
 
     def handle_mouse_press(self, pos, rect):

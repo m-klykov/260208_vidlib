@@ -6,7 +6,6 @@ from PySide6.QtGui import Qt
 
 
 class FilterBase(QObject):
-    params_changed = Signal()
 
     def __init__(self, num, cache_dir, params=None):
         self.name = "Base Filter"  # Переопределяется в потомках
@@ -51,7 +50,8 @@ class FilterBase(QObject):
         return {"ranges": [], "marks": []}
 
     def handle_mouse_move(self, pos, rect):
-        return Qt.ArrowCursor
+        """возвращает курсор и надо ли обновить значение параметров фильтра"""
+        return Qt.ArrowCursor, False
 
     def handle_mouse_press(self, pos, rect):
         pass

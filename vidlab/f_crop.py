@@ -86,7 +86,7 @@ class FilterCrop(FilterBase):
         }
 
     def handle_mouse_move(self, pos, rect):
-        if self.enabled: return Qt.ArrowCursor
+        if self.enabled: return Qt.ArrowCursor, False
 
         coords = self._get_coords(rect)
 
@@ -103,29 +103,39 @@ class FilterCrop(FilterBase):
                 self.active_side = 'bottom'
 
             # Возвращаем нужный курсор
-            if self.active_side in ['left', 'right']: return Qt.SizeHorCursor
-            if self.active_side in ['top', 'bottom']: return Qt.SizeVerCursor
-            return Qt.ArrowCursor
+            if self.active_side in ['left', 'right']: return Qt.SizeHorCursor, False
+            if self.active_side in ['top', 'bottom']: return Qt.SizeVerCursor, False
+            return Qt.ArrowCursor, False
 
         else:
             # Логика перетаскивания (Drag)
             w, h = rect.width(), rect.height()
             x, y = rect.left(), rect.top()
 
+            params_changed = False
+
             if self.active_side == 'left':
                 val = (pos.x() - x) / w * 100
                 self.params['left'] = max(0, min(val, 100 - self.params['right'] - 1))
+                params_changed = True
+
             elif self.active_side == 'right':
                 val = (x + w - pos.x()) / w * 100
                 self.params['right'] = max(0, min(val, 100 - self.params['left'] - 1))
+                params_changed = True
+
             elif self.active_side == 'top':
                 val = (pos.y() - y) / h * 100
                 self.params['top'] = max(0, min(val, 100 - self.params['bottom'] - 1))
+                params_changed = True
+
             elif self.active_side == 'bottom':
                 val = (y + h - pos.y()) / h * 100
                 self.params['bottom'] = max(0, min(val, 100 - self.params['top'] - 1))
+                params_changed = True
 
-            return Qt.SizeHorCursor if self.active_side in ['left', 'right'] else Qt.SizeVerCursor
+            curs = Qt.SizeHorCursor if self.active_side in ['left', 'right'] else Qt.SizeVerCursor
+            return curs, params_changed
 
     def handle_mouse_press(self, pos, rect):
         if self.active_side:

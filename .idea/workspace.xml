@@ -4,13 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="bw and crop filter, base for crop overlay">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="worket crop overley mouse editing">
+      <change afterPath="$PROJECT_DIR$/vidlab/v_timeline.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_crop.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_crop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_filter_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_video.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_video_display.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_video_display.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -248,7 +250,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770679562775</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="worket crop overley mouse editing">
+      <option name="closed" value="true" />
+      <created>1770683753298</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1770683753298</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -271,7 +281,8 @@
     <MESSAGE value="filter platform" />
     <MESSAGE value="filter manager and editor" />
     <MESSAGE value="bw and crop filter, base for crop overlay" />
-    <option name="LAST_COMMIT_MESSAGE" value="bw and crop filter, base for crop overlay" />
+    <MESSAGE value="worket crop overley mouse editing" />
+    <option name="LAST_COMMIT_MESSAGE" value="worket crop overley mouse editing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

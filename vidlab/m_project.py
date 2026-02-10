@@ -73,6 +73,13 @@ class VideoProjectModel:
         # Если метки нет, возвращаем последний индекс кадра (total - 1)
         return max(0, max_index)
 
+    def get_user_marks(self):
+        marks = []
+        for s in self.scenes:
+            if not s.get('type') in [self.TYPE_IN, self.TYPE_OUT]:
+                marks.append(s['frame'])
+        return marks
+
     def remove_scene(self, frame_idx):
         self.scenes = [s for s in self.scenes if s['frame'] != frame_idx]
         self.save_project()

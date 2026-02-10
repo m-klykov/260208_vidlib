@@ -2,15 +2,21 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
                                QListWidgetItem, QPushButton, QMenu, QCheckBox, QLabel, QScrollArea, QMessageBox)
 from PySide6.QtCore import Qt, Signal
 
+from vidlab.c_video import VideoController
+
 
 class FilterManagerWidget(QWidget):
     def __init__(self, controller):
         super().__init__()
-        self.controller = controller
+        self.controller : VideoController= controller
         self.project = controller.project
         self._init_ui()
 
+        self.param_widgets = {}  # Словарь для хранения ссылок { "param_name": widget }
+        self._current_filter_obj = None
+
         self.controller.scenes_updated.connect(self.refresh_list)
+        self.controller.filter_params_changed.connect(self._update_ui_from_params)
         # self.refresh_list()
 
     def _init_ui(self):
@@ -52,6 +58,7 @@ class FilterManagerWidget(QWidget):
 
     def refresh_list(self):
         """Синхронизирует UI со списком фильтров в проекте"""
+        self._on_filter_selected(-1)
         self.list_widget.clear()
         for f in self.project.filters:
             item = QListWidgetItem(f.get_id())
@@ -63,6 +70,14 @@ class FilterManagerWidget(QWidget):
         self.controller.refresh_current_frame()  # Обновить превью
 
     def _on_filter_selected(self, index):
+
+        # 1. Отключаем старые сигналы, если были
+        # if self._current_filter_obj is not None:
+        #     try:
+        #         self._current_filter_obj.params_changed.disconnect(self._update_ui_from_params)
+        #     except:
+        #         pass
+
         # Очищаем старую панель
         # Очищаем старую панель максимально безопасно
         while self.params_layout.count():
@@ -74,10 +89,17 @@ class FilterManagerWidget(QWidget):
                 # Если это вложенный лайаут (как наш hbox с ползунком), чистим и его
                 self._clear_sub_layout(item.layout())
 
+        self.param_widgets = {}
+
         if index < 0 or index >= len(self.project.filters):
+            self._current_filter_obj = None
             return
 
         selected_filter = self.project.filters[index]
+        self._current_filter_obj = selected_filter
+
+        # 2. Подписываемся на изменения из фильтра (от мышки)
+        # selected_filter.params_changed.connect(self._update_ui_from_params)
 
         # Устанавливаем фокус (для Overlay в будущем)
         for f in self.project.filters: f.focused = False
@@ -112,17 +134,38 @@ class FilterManagerWidget(QWidget):
 
             value_label = QLabel(str(slider.value()))
 
-            def on_val_changed(v, k=key, f=filter_obj, l=value_label):
-                f.params[k] = v
-                l.setText(str(v))
-                self.project.save_project()
-                self.controller.refresh_current_frame()  # Важно для Live-правки!
+            # Сохраняем ссылку на слайдер и лейбл
+            self.param_widgets[key] = (slider, value_label)
 
-            slider.valueChanged.connect(on_val_changed)
+            slider.valueChanged.connect(lambda v, k=key: self._on_ui_param_changed(v, k))
             hbox.addWidget(slider)
             hbox.addWidget(value_label)
 
         self.params_layout.addLayout(hbox)
+
+    def _on_ui_param_changed(self, value, key):
+        """Когда пользователь крутит ползунок"""
+        if self._current_filter_obj:
+            self._current_filter_obj.params[key] = value
+            # Обновляем текст рядом с ползунком
+            if key in self.param_widgets:
+                self.param_widgets[key][1].setText(str(value))
+
+            self.project.save_project()
+            self.controller.refresh_current_frame()
+
+    def _update_ui_from_params(self):
+        """Когда параметры изменились в фильтре (от мышки)"""
+        if not self._current_filter_obj: return
+
+        # Блокируем сигналы слайдеров, чтобы не было зацикливания
+        # (UI -> Filter -> UI)
+        for key, (slider, label) in self.param_widgets.items():
+            new_val = int(self._current_filter_obj.params.get(key, 0))
+            slider.blockSignals(True)
+            slider.setValue(new_val)
+            label.setText(str(new_val))
+            slider.blockSignals(False)
 
     def _show_add_menu(self):
         menu = QMenu(self)
