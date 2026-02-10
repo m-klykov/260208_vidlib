@@ -5,6 +5,7 @@ from .f_base import FilterBase
 from .f_bw import FilterBW
 from .f_crop import FilterCrop
 from .f_levels import FilterLevels
+from .f_scene_det import FilterSceneDetector
 from .m_project import VideoProjectModel
 
 
@@ -18,6 +19,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "Levels": FilterLevels,
             "Black and White": FilterBW,
             "Crop": FilterCrop,
+            "Scene Detector": FilterSceneDetector,
         }
 
     def load_project(self, video_path):

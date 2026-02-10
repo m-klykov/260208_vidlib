@@ -72,7 +72,7 @@ class TimelineWidget(QWidget):
 
         # Рисуем области анализа (Ranges) сверху
         painter.setPen(Qt.NoPen)
-        painter.setBrush(QColor(0, 255, 0, 60))
+        painter.setBrush(QColor(0, 255, 0, 40))
         for s, e in data.get("ranges", []):
             if e < start_f or s > end_f: continue
             x1 = self._frame_to_x(max(s, start_f))
@@ -95,13 +95,13 @@ class TimelineWidget(QWidget):
         x_out = self._frame_to_x(out_f)
 
         # Рисуем In/Out как засечки снизу
-        painter.setPen(QPen(QColor(255, 200, 0), 2))
+        painter.setPen(QPen(QColor(200, 150, 0), 2))
         # In [
-        painter.drawLine(int(x_in), mid_y, int(x_in), rect.height() - 10)
-        painter.drawLine(int(x_in), rect.height() - 10, int(x_in) + 5, rect.height() - 10)
+        painter.drawLine(int(x_in), mid_y, int(x_in), rect.height() - 5)
+        painter.drawLine(int(x_in), rect.height() - 5, int(x_in) + 5, rect.height() - 5)
         # Out ]
-        painter.drawLine(int(x_out), mid_y, int(x_out), rect.height() - 10)
-        painter.drawLine(int(x_out), rect.height() - 10, int(x_out) - 5, rect.height() - 10)
+        painter.drawLine(int(x_out), mid_y, int(x_out), rect.height() - 5)
+        painter.drawLine(int(x_out), rect.height() - 5, int(x_out) - 5, rect.height() - 5)
 
     def _draw_user_marks_bottom(self, painter, rect, mid_y, start_f, end_f):
         # Получаем список меток из модели через контроллер
