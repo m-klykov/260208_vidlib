@@ -95,7 +95,10 @@ class FilterBase(QObject):
 
     def get_timeline_data(self):
         """Данные для отрисовки на таймлайне (диапазоны, метки)"""
-        return {"ranges": [], "marks": []}
+        return {
+            "ranges": self.get_param("analyzed_ranges", []),
+            "marks": self.get_param("detected_scenes", [])
+        }
 
     def handle_mouse_move(self, pos, rect):
         """возвращает курсор и надо ли обновить значение параметров фильтра"""

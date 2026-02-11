@@ -1,8 +1,10 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
-                               QListWidgetItem, QPushButton, QMenu, QCheckBox, QLabel, QScrollArea, QMessageBox)
-from PySide6.QtCore import Qt, Signal
+                               QListWidgetItem, QPushButton, QMenu, QCheckBox, QLabel, QScrollArea, QMessageBox,
+                               QProgressBar)
+from PySide6.QtCore import Qt, Signal, QTimer
 
 from vidlab.c_video import VideoController
+from vidlab.f_asinc_base import FilterAsyncBase
 
 
 class FilterManagerWidget(QWidget):
@@ -49,6 +51,21 @@ class FilterManagerWidget(QWidget):
         self.params_layout.setAlignment(Qt.AlignTop)
         self.params_scroll.setWidget(self.params_container)
         layout.addWidget(self.params_scroll)
+
+        # Кнопка анализа (создаем заранее, будем скрывать/показывать)
+        self.btn_analyze = QPushButton("Analyze Video")
+        self.btn_analyze.clicked.connect(self.on_analyze_clicked)
+        self.btn_analyze.setVisible(False)
+        layout.addWidget(self.btn_analyze)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
+
+        # Таймер для обновления состояния кнопок и прогресс-бара
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.sync_ui_state)
+        self.update_timer.start(200)  # 5 раз в секунду достаточно
 
         # Подключение действий
         self.btn_add.clicked.connect(self._show_add_menu)
@@ -110,7 +127,48 @@ class FilterManagerWidget(QWidget):
         for key, info in metadata.items():
             self._add_param_control(selected_filter, key, info)
 
+        # Показываем кнопку только если фильтр — асинхронный
+        is_async = isinstance(selected_filter, FilterAsyncBase)
+        self.btn_analyze.setVisible(is_async)
+        self.progress_bar.setVisible(is_async)
+        self.sync_ui_state()
+
         self.controller.refresh_current_frame()  # Обновить превью
+
+    def sync_ui_state(self):
+        """Вызывается по таймеру для обновления текста кнопки и прогресса"""
+        if (not self._current_filter_obj
+        or not isinstance(self._current_filter_obj, FilterAsyncBase)):
+            return
+
+        f = self._current_filter_obj
+        if f.is_analyzing:
+            self.btn_analyze.setText("Stop Analysis")
+            self.btn_analyze.setStyleSheet("background-color: #552222;")  # Подсветим красным
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setValue(f.progress)
+
+        else:
+            self.btn_analyze.setText("Start Analysis")
+            self.btn_analyze.setStyleSheet("")
+            self.progress_bar.setVisible(f.progress > 0 and f.progress < 100)
+            self.progress_bar.setValue(f.progress)
+
+        self.controller.refresh_current_frame()
+
+    def on_analyze_clicked(self):
+        if (not self._current_filter_obj
+                or not isinstance(self._current_filter_obj, FilterAsyncBase)):
+            return
+
+        f = self._current_filter_obj
+
+        if f.is_analyzing:
+            f.stop_analysis()
+        else:
+            # Перед запуском прокидываем путь к видео из модели
+            f.video_path = self.controller.model.file_path
+            f.start_analysis()
 
     def _clear_sub_layout(self, layout):
         """Рекурсивно очищает вложенные лайауты"""
