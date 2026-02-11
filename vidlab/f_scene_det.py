@@ -3,16 +3,15 @@ from .f_base import FilterBase
 
 class FilterSceneDetector(FilterBase):
     def __init__(self, num, cache_dir, params=None):
+        if not params:
+            params = {
+                "threshold": 30,
+            }
         super().__init__(num, cache_dir, params)
         self.name = "Scene Detector"
 
         # Реальные поля для данных (будут сериализованы в params)
-        if not self.params:
-            self.params = {
-                "threshold": 30,
-                "analyzed_ranges": [],  # [[0, 500], [1000, 1200]]
-                "detected_scenes": []  # [124, 450, 1102]
-            }
+
 
     def get_params_metadata(self):
         return {

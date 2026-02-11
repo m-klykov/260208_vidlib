@@ -5,11 +5,13 @@ from .f_base import FilterBase
 
 class FilterLevels(FilterBase):
     def __init__(self, num, cache_dir, params=None):
+        if not params:
+           params = {"black": 0, "white": 255}
+
         super().__init__(num, cache_dir, params)
         self.name = "Levels"
         # Дефолтные параметры
-        if not self.params:
-            self.params = {"black": 0, "white": 255}
+
 
     def get_params_metadata(self):
         return {
@@ -18,8 +20,8 @@ class FilterLevels(FilterBase):
         }
 
     def process(self, frame, idx):
-        black = self.params.get("black", 0)
-        white = self.params.get("white", 255)
+        black = self.get_param("black")
+        white = self.get_param("white")
 
         if black == 0 and white == 255:
             return frame

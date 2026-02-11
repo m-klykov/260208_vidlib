@@ -1,19 +1,22 @@
 import os
 import json
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, QMutex, QMutexLocker
 from PySide6.QtGui import Qt
 
 
 class FilterBase(QObject):
 
+    params_changed = Signal()  # Сигнал для UI (ползунки, таймлайн)
+
     def __init__(self, num, cache_dir, params=None):
         self.name = "Base Filter"  # Переопределяется в потомках
         self.num = num
         self.cache_dir = cache_dir  # Путь к папке вида video_fdata/
-        self.params = params or {}
+        self._params = params or {}
         self.enabled = True
         self.focused = False
+        self._lock = QMutex()
 
     def get_id(self):
         # Превращает "Scene Detector" в "scene_detector_1"
@@ -22,7 +25,52 @@ class FilterBase(QObject):
 
     def get_params(self):
         """Возвращает текущие значения параметров для сохранения в основной JSON"""
-        return self.params
+        with QMutexLocker(self._lock):
+            return dict(self._params)
+
+    def get_param(self, key, default=None):
+        """
+        Безопасное чтение:
+        1. Из словаря параметров
+        2. Из метаданных (default значение)
+        3. Из аргумента default
+        """
+        with QMutexLocker(self._lock):
+            # 1. Если параметр уже задан (есть в словаре)
+            if key in self._params:
+                return self._params[key]
+
+        # 2. Если в словаре нет, ищем в метаданных (вне лока, т.к. метаданные статичны)
+        metadata = self.get_params_metadata()
+        if key in metadata and 'default' in metadata[key]:
+            return metadata[key]['default']
+
+        # 3. Крайний случай
+        return default
+
+    def set_param(self, key, value):
+        """Безопасная запись с проверкой границ и уведомлением"""
+        metadata = self.get_params_metadata()
+
+        # 1. Валидация по метаданным
+        if key in metadata:
+            meta = metadata[key]
+            try:
+                if meta['type'] == 'int':
+                    value = int(max(meta['min'], min(meta['max'], value)))
+                elif meta['type'] == 'float':
+                    value = max(meta['min'], min(meta['max'], float(value)))
+            except (ValueError, TypeError):
+                return  # Некорректный тип, игнорируем
+
+        # 2. Запись под замком
+        with QMutexLocker(self._lock):
+            if self._params.get(key) == value:
+                return  # Ничего не изменилось
+            self._params[key] = value
+
+        # 3. Уведомление системы
+        # self.params_changed.emit()
 
     def get_params_metadata(self):
         """

@@ -130,7 +130,7 @@ class FilterManagerWidget(QWidget):
             from PySide6.QtWidgets import QSlider
             slider = QSlider(Qt.Horizontal)
             slider.setRange(info['min'], info['max'])
-            slider.setValue(filter_obj.params.get(key, info['default']))
+            slider.setValue(filter_obj.get_param(key, info['default']))
 
             value_label = QLabel(str(slider.value()))
 
@@ -146,10 +146,12 @@ class FilterManagerWidget(QWidget):
     def _on_ui_param_changed(self, value, key):
         """Когда пользователь крутит ползунок"""
         if self._current_filter_obj:
-            self._current_filter_obj.params[key] = value
+            self._current_filter_obj.set_param(key, value)
+            # real_value =  self._current_filter_obj.get_param(key)
             # Обновляем текст рядом с ползунком
             if key in self.param_widgets:
-                self.param_widgets[key][1].setText(str(value))
+                slider, label = self.param_widgets[key]
+                label.setText(str(value))
 
             self.project.save_project()
             self.controller.refresh_current_frame()
@@ -161,7 +163,7 @@ class FilterManagerWidget(QWidget):
         # Блокируем сигналы слайдеров, чтобы не было зацикливания
         # (UI -> Filter -> UI)
         for key, (slider, label) in self.param_widgets.items():
-            new_val = int(self._current_filter_obj.params.get(key, 0))
+            new_val = int(self._current_filter_obj.get_param(key))
             slider.blockSignals(True)
             slider.setValue(new_val)
             label.setText(str(new_val))

@@ -6,11 +6,12 @@ from .f_base import FilterBase
 
 class FilterCrop(FilterBase):
     def __init__(self, num, cache_dir, params=None):
+        if not params:
+           params = {"top": 0, "bottom": 0, "left": 0, "right": 0}
+
         super().__init__(num, cache_dir, params)
         self.name = "Crop"
         # Дефолтные значения: 0% отступов со всех сторон
-        if not self.params:
-            self.params = {"top": 0, "bottom": 0, "left": 0, "right": 0}
 
         self.active_side = None  # Сторона, на которую навели или которую тянем
         self.is_dragging = False
@@ -28,10 +29,10 @@ class FilterCrop(FilterBase):
         h, w = frame.shape[:2]
 
         # Вычисляем пиксели на основе процентов
-        t = int(h * (self.params.get("top", 0) / 100))
-        b = int(h * (self.params.get("bottom", 0) / 100))
-        l = int(w * (self.params.get("left", 0) / 100))
-        r = int(w * (self.params.get("right", 0) / 100))
+        t = int(h * (self.get_param("top") / 100))
+        b = int(h * (self.get_param("bottom") / 100))
+        l = int(w * (self.get_param("left") / 100))
+        r = int(w * (self.get_param("right") / 100))
 
         # Определяем новые границы (минимум 1 пиксель, чтобы не схлопнулось в 0)
         y1, y2 = t, h - b
@@ -53,10 +54,10 @@ class FilterCrop(FilterBase):
             sy = viewport_rect.top()
 
             # Считаем координаты рамки в пикселях виджета
-            t = h * (self.params.get("top", 0) / 100)
-            b = h * (self.params.get("bottom", 0) / 100)
-            l = w * (self.params.get("left", 0) / 100)
-            r = w * (self.params.get("right", 0) / 100)
+            t = h * (self.get_param("top") / 100)
+            b = h * (self.get_param("bottom") / 100)
+            l = w * (self.get_param("left") / 100)
+            r = w * (self.get_param("right") / 100)
 
             # Настройка пера (красный пунктир)
             pen = QPen(QColor(255, 0, 0), 2, Qt.DashLine)
@@ -79,10 +80,10 @@ class FilterCrop(FilterBase):
         w, h = rect.width(), rect.height()
         x, y = rect.left(), rect.top()
         return {
-            'left': x + w * (self.params['left'] / 100),
-            'right': x + w - (w * (self.params['right'] / 100)),
-            'top': y + h * (self.params['top'] / 100),
-            'bottom': y + h - (h * (self.params['bottom'] / 100))
+            'left': x + w * (self.get_param('left') / 100),
+            'right': x + w - (w * (self.get_param('right') / 100)),
+            'top': y + h * (self.get_param('top') / 100),
+            'bottom': y + h - (h * (self.get_param('bottom') / 100))
         }
 
     def handle_mouse_move(self, pos, rect):
@@ -116,22 +117,22 @@ class FilterCrop(FilterBase):
 
             if self.active_side == 'left':
                 val = (pos.x() - x) / w * 100
-                self.params['left'] = max(0, min(val, 100 - self.params['right'] - 1))
+                self.set_param('left', val)
                 params_changed = True
 
             elif self.active_side == 'right':
                 val = (x + w - pos.x()) / w * 100
-                self.params['right'] = max(0, min(val, 100 - self.params['left'] - 1))
+                self.set_param('right', val)
                 params_changed = True
 
             elif self.active_side == 'top':
                 val = (pos.y() - y) / h * 100
-                self.params['top'] = max(0, min(val, 100 - self.params['bottom'] - 1))
+                self.set_param('top', val)
                 params_changed = True
 
             elif self.active_side == 'bottom':
                 val = (y + h - pos.y()) / h * 100
-                self.params['bottom'] = max(0, min(val, 100 - self.params['top'] - 1))
+                self.set_param('bottom',val)
                 params_changed = True
 
             curs = Qt.SizeHorCursor if self.active_side in ['left', 'right'] else Qt.SizeVerCursor

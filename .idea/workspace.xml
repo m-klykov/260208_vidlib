@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="timeline with markers and filter data">
-      <change afterPath="$PROJECT_DIR$/vidlab/f_scene_det.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="scene detector base">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_timeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_timeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_crop.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_crop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_levels.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_levels.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_scene_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_scene_det.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_filter_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -262,7 +264,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770751830181</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="scene detector base">
+      <option name="closed" value="true" />
+      <created>1770753273006</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1770753273006</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -287,7 +297,8 @@
     <MESSAGE value="bw and crop filter, base for crop overlay" />
     <MESSAGE value="worket crop overley mouse editing" />
     <MESSAGE value="timeline with markers and filter data" />
-    <option name="LAST_COMMIT_MESSAGE" value="timeline with markers and filter data" />
+    <MESSAGE value="scene detector base" />
+    <option name="LAST_COMMIT_MESSAGE" value="scene detector base" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
