@@ -15,25 +15,15 @@ class TimelineWidget(QWidget):
         self.setMouseTracking(True)
         self.is_dragging = False
 
-    def _get_active_range(self):
-        """Возвращает границы, которые сейчас отображаются на таймлайне"""
-        if self.controller.cropped_mode:
-            # В режиме обрезки - только рабочий участок
-            return self.controller.get_in_index(), self.controller.get_out_index()
-        else:
-            # В обычном режиме - всё видео целиком
-            m = self.controller.model
-            return m.get_min_index(), m.get_max_index()
-
     def _frame_to_x(self, frame):
-        start, end = self._get_active_range()
+        start, end = self.controller.get_active_range()
         total = end - start
         if total <= 0: return 0
         # Считаем позицию относительно начала активного участка
         return ((frame - start) / total) * self.width()
 
     def _x_to_frame(self, x):
-        start, end = self._get_active_range()
+        start, end = self.controller.get_active_range()
         total = end - start
         frame = start + (x / self.width()) * total
         return int(max(start, min(end, frame)))
@@ -47,7 +37,7 @@ class TimelineWidget(QWidget):
 
         m = self.controller.model
         if m.get_max_index() <= 0: return
-        start_f, end_f = self._get_active_range()
+        start_f, end_f = self.controller.get_active_range()
 
         # 1. Фоновая горизонтальная линия (ось времени)
         painter.setPen(QPen(QColor(80, 80, 80), 1))

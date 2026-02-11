@@ -60,35 +60,51 @@ class VideoWidget(QWidget):
         # Кнопки управления
         controls = QHBoxLayout()
         self.btn_start = QPushButton("|<")
-        self.btn_go_in = QPushButton("In<")  # К началу области
-        self.btn_go_in.setToolTip("Перейти к началу области (In)")
-        self.btn_back = QPushButton("<")
-        self.btn_play = QPushButton("▶ Play")
-        self.btn_forward = QPushButton(">")
-        self.btn_go_out = QPushButton(">Out")  # К концу области
-        self.btn_go_out.setToolTip("Перейти к концу области (Out)")
+        self.btn_start.clicked.connect(self.controller.to_start)
+
         self.btn_end = QPushButton(">|")
+        self.btn_end.clicked.connect(self.controller.to_end)
 
-        self.btn_go_in.setToolTip("Перейти к началу области (In)")
-        self.btn_go_out.setToolTip("Перейти к концу области (Out)")
+        # self.btn_go_in = QPushButton("In<")  # К началу области
+        # self.btn_go_in.setToolTip("Перейти к началу области (In)")
+        # self.btn_go_in.clicked.connect(self.controller.to_in_point)
+        #
+        # self.btn_go_out = QPushButton(">Out")  # К концу области
+        # self.btn_go_out.setToolTip("Перейти к концу области (Out)")
+        # self.btn_go_out.clicked.connect(self.controller.to_out_point)
 
-        for btn in [self.btn_start, self.btn_go_in, self.btn_back,
+        self.btn_prev = QPushButton("←")
+        self.btn_prev.setToolTip("предыдущий маркер")
+        self.btn_prev.clicked.connect(self.controller.to_prev_marker)
+
+        self.btn_next = QPushButton("→")
+        self.btn_next.setToolTip("следующий маркер")
+        self.btn_next.clicked.connect(self.controller.to_next_marker)
+
+        self.btn_back = QPushButton("<")
+        self.btn_back.setToolTip("На кадр назад")
+        self.btn_back.clicked.connect(self.controller.step_backward)
+
+        self.btn_forward = QPushButton(">")
+        self.btn_forward.setToolTip("На кадр вперед")
+        self.btn_forward.clicked.connect(self.controller.step_forward)
+
+        self.btn_play = QPushButton("▶ Play")
+        self.btn_play.clicked.connect(self.controller.toggle_play)
+
+        for btn in [self.btn_start, #self.btn_go_in,
+                    self.btn_prev, self.btn_back,
                     self.btn_play,
-                    self.btn_forward, self.btn_go_out, self.btn_end]:
+                    self.btn_forward, self.btn_next,
+                    self.btn_end]: # self.btn_go_out,
             btn.setFocusPolicy(Qt.NoFocus)  # Кнопки больше не крадут фокус у виджета
+            btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             controls.addWidget(btn)
 
         layout.addLayout(controls)
 
     def _connect_signals(self):
         # От UI к контроллеру
-        self.btn_play.clicked.connect(self.controller.toggle_play)
-        self.btn_start.clicked.connect(self.controller.to_start)
-        self.btn_end.clicked.connect(self.controller.to_end)
-        self.btn_forward.clicked.connect(self.controller.step_forward)
-        self.btn_back.clicked.connect(self.controller.step_backward)
-        self.btn_go_in.clicked.connect(self.controller.to_in_point)
-        self.btn_go_out.clicked.connect(self.controller.to_out_point)
 
         # Слайдер
         # self.slider.valueChanged.connect(self._on_slider_changed)
@@ -129,19 +145,15 @@ class VideoWidget(QWidget):
         # self.slider.setRange(in_f, out_f)
         self.timeline.update()
 
-        self.btn_start.setVisible(not self.controller.cropped_mode)
-        self.btn_end.setVisible(not self.controller.cropped_mode)
+        # self.btn_start.setVisible(not self.controller.cropped_mode)
+        # self.btn_end.setVisible(not self.controller.cropped_mode)
 
 
     def update_slider(self, pos):
         # Блокируем сигналы, чтобы перемещение ползунка программно не вызывало seek в контроллере
-        # self.slider.blockSignals(True)
         if self.controller.model.frame_count > 0:
-            # self.update_slider_range()
             # Обновляем правую метку (длительность)
             self.lbl_total.setText(self.controller.model.get_total_timestamp())
-        # self.slider.setValue(pos)
-        # self.slider.blockSignals(False)
 
         # Заставляем таймлайн перерисовать Playhead на новой позиции
         self.timeline.update()
@@ -161,17 +173,41 @@ class VideoWidget(QWidget):
 
     # Обработка клавиатуры
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Space:
+        modifiers = event.modifiers()
+        key = event.key()
+
+        if key == Qt.Key_Space:
             self.controller.toggle_play()
             event.accept()
 
-        elif event.key() == Qt.Key_Right:
-            self.controller.step_forward()
+        elif key == Qt.Key_Right:
+            if modifiers & Qt.ControlModifier:
+                # Ctrl + Right: к следующему маркеру
+                self.controller.to_next_marker()
+            else:
+                # Просто Right: на один кадр вперед
+                self.controller.step_forward()
             event.accept()
 
-        elif event.key() == Qt.Key_Left:
-            self.controller.step_backward()
+        elif key == Qt.Key_Left:
+            if modifiers & Qt.ControlModifier:
+                # Ctrl + Left: к предыдущему маркеру
+                self.controller.to_prev_marker()
+            else:
+                # Просто Left: на один кадр назад
+                self.controller.step_backward()
             event.accept()
+        elif key == Qt.Key_Up:
+            if modifiers & Qt.ControlModifier:
+                # Ctrl + Up: к метке входа (In-point)
+                self.controller.to_in_point()
+                event.accept()
+
+        elif key == Qt.Key_Down:
+            if modifiers & Qt.ControlModifier:
+                # Ctrl + Down: к метке выхода (Out-point)
+                self.controller.to_out_point()
+                event.accept()
 
         else:
             super().keyPressEvent(event)

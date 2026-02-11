@@ -4,11 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="asinc scene detector mehanik">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="real scene detector, saved to cash folder">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_scene_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_scene_det.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_project.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_filter_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_timeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_timeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_video.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -286,7 +286,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770774590371</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="real scene detector, saved to cash folder">
+      <option name="closed" value="true" />
+      <created>1770844335370</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1770844335370</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -314,7 +322,8 @@
     <MESSAGE value="scene detector base" />
     <MESSAGE value="use filter params setter and getter" />
     <MESSAGE value="asinc scene detector mehanik" />
-    <option name="LAST_COMMIT_MESSAGE" value="asinc scene detector mehanik" />
+    <MESSAGE value="real scene detector, saved to cash folder" />
+    <option name="LAST_COMMIT_MESSAGE" value="real scene detector, saved to cash folder" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -127,12 +127,35 @@ class VideoController(QObject):
                 f.render_overlay(painter, self.model.get_current_index(), viewport_rect)
                 break
 
+    def get_active_range(self):
+        """Возвращает границы, которые сейчас отображаются на таймлайне"""
+        if self.cropped_mode:
+            # В режиме обрезки - только рабочий участок
+            return self.get_in_index(), self.get_out_index()
+        else:
+            # В обычном режиме - всё видео целиком
+            return self.model.get_min_index(), self.model.get_max_index()
+
     def get_active_filter_timeline_data(self):
         """Просто возвращает данные для отрисовки от сфокусированного фильтра"""
         for f in self.project.filters:
             if f.focused:
                 return f.get_timeline_data()
         return {"marks": [], "ranges": []}
+
+    def get_active_marks(self):
+        """отсортированные времена маркеров пользователя и ефекта"""
+        all_points = set()
+
+        all_points.update(self.project.get_all_marks())
+
+        filter_data = self.get_active_filter_timeline_data()
+
+        all_points.update(filter_data["marks"])
+
+        sorted_points = sorted(list(all_points))
+
+        return sorted_points
 
     def handle_mouse_move(self, pos, target_rect):
         # Ищем фильтр, который сейчас выбран (в фокусе)
@@ -193,6 +216,34 @@ class VideoController(QObject):
 
     def to_out_point(self):
         self.seek(self.get_out_index())
+
+    def to_next_marker(self):
+        """Переход к ближайшему маркеру справа от плейхеда"""
+        curr_frame = self.model.get_current_index()
+        marks = self.get_active_marks()
+
+        # Ищем первый маркер, который строго больше текущего кадра
+        for m in marks:
+            if m > curr_frame:
+                self.seek(m)
+                return
+
+        # Если ничего не нашли (мы в самом конце), можно прыгнуть на Out-point или последний кадр
+        # self.seek(self.get_out_index())
+
+    def to_prev_marker(self):
+        """Переход к ближайшему маркеру слева от плейхеда"""
+        curr_frame = self.model.get_current_index()
+        marks = self.get_active_marks()
+
+        # Ищем маркеры в обратном порядке и берем первый, который меньше текущего
+        for m in reversed(marks):
+            if m < curr_frame:
+                self.seek(m)
+                return
+
+        # Если ничего не нашли (мы в самом начале), прыгаем на In-point
+        # self.seek(self.get_in_index())
 
     def add_current_scene(self):
         idx = self.model.current_idx
