@@ -144,7 +144,7 @@ class FilterManagerWidget(QWidget):
         f = self._current_filter_obj
         if f.is_analyzing:
             self.btn_analyze.setText("Stop Analysis")
-            self.btn_analyze.setStyleSheet("background-color: #552222;")  # Подсветим красным
+            self.btn_analyze.setStyleSheet("background-color: #ffaaaa;")  # Подсветим красным
             self.progress_bar.setVisible(True)
             self.progress_bar.setValue(f.progress)
 

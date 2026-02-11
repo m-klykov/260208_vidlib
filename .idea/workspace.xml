@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="use filter params setter and getter">
-      <change afterPath="$PROJECT_DIR$/vidlab/f_asinc_base.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="asinc scene detector mehanik">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_scene_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_scene_det.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_filter_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -279,7 +278,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770770104058</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="asinc scene detector mehanik">
+      <option name="closed" value="true" />
+      <created>1770774590371</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1770774590371</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -306,7 +313,8 @@
     <MESSAGE value="timeline with markers and filter data" />
     <MESSAGE value="scene detector base" />
     <MESSAGE value="use filter params setter and getter" />
-    <option name="LAST_COMMIT_MESSAGE" value="use filter params setter and getter" />
+    <MESSAGE value="asinc scene detector mehanik" />
+    <option name="LAST_COMMIT_MESSAGE" value="asinc scene detector mehanik" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

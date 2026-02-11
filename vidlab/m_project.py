@@ -74,10 +74,18 @@ class VideoProjectModel:
         return max(0, max_index)
 
     def get_user_marks(self):
+        """кадры с пользовательскими метками"""
         marks = []
         for s in self.scenes:
             if not s.get('type') in [self.TYPE_IN, self.TYPE_OUT]:
                 marks.append(s['frame'])
+        return marks
+
+    def get_all_marks(self):
+        """вернуть все кадры с метками"""
+        marks = []
+        for s in self.scenes:
+            marks.append(s['frame'])
         return marks
 
     def remove_scene(self, frame_idx):
