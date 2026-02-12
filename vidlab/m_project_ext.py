@@ -6,6 +6,7 @@ from .f_bw import FilterBW
 from .f_crop import FilterCrop
 from .f_levels import FilterLevels
 from .f_object_detecctor import FilterObjectDetector
+from .f_resize import FilterResize
 from .f_scene_det import FilterSceneDetector
 from .f_stabilizer import FilterStabilizer
 from .m_project import VideoProjectModel
@@ -21,6 +22,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "Levels": FilterLevels,
             "Black and White": FilterBW,
             "Crop": FilterCrop,
+            "Resize": FilterResize,
             "Scene Detector": FilterSceneDetector,
             "AI Object Detector": FilterObjectDetector,
             "Stabilizer": FilterStabilizer,

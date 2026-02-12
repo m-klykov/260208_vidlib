@@ -22,27 +22,37 @@ class FilterCrop(FilterBase):
             "top": {"type": "int", "min": 0, "max": 49, "default": 0},
             "bottom": {"type": "int", "min": 0, "max": 49, "default": 0},
             "left": {"type": "int", "min": 0, "max": 49, "default": 0},
-            "right": {"type": "int", "min": 0, "max": 49, "default": 0}
+            "right": {"type": "int", "min": 0, "max": 49, "default": 0},
+            "resize": {"type": "bool", "default": False},
         }
 
     def process(self, frame, idx):
-        h, w = frame.shape[:2]
+        h_orig, w_orig = frame.shape[:2]
 
-        # Вычисляем пиксели на основе процентов
-        t = int(h * (self.get_param("top") / 100))
-        b = int(h * (self.get_param("bottom") / 100))
-        l = int(w * (self.get_param("left") / 100))
-        r = int(w * (self.get_param("right") / 100))
+        # 1. Вычисляем пиксели на основе процентов
+        t = int(h_orig * (self.get_param("top") / 100))
+        b = int(h_orig * (self.get_param("bottom") / 100))
+        l = int(w_orig * (self.get_param("left") / 100))
+        r = int(w_orig * (self.get_param("right") / 100))
 
-        # Определяем новые границы (минимум 1 пиксель, чтобы не схлопнулось в 0)
-        y1, y2 = t, h - b
-        x1, x2 = l, w - r
+        # 2. Определяем границы кропа
+        y1, y2 = t, h_orig - b
+        x1, x2 = l, w_orig - r
 
+        # Защита от некорректных значений
         if y2 <= y1 or x2 <= x1:
-            return frame  # Если обрезали всё, возвращаем оригинал
+            return frame
 
-        # Срез массива (crop)
-        return frame[y1:y2, x1:x2]
+        # 3. Делаем кроп
+        cropped = frame[y1:y2, x1:x2]
+
+        # 4. Если включен параметр zoom — растягиваем до исходного размера
+        if self.get_param("resize"):
+            # Используем cv2.resize для восстановления исходных размеров
+            # INTER_CUBIC дает хороший баланс между четкостью и скоростью
+            return cv2.resize(cropped, (w_orig, h_orig), interpolation=cv2.INTER_CUBIC)
+
+        return cropped
 
     def render_overlay(self, painter, idx, viewport_rect):
         # Рисуем рамку, только если фильтр в фокусе и НЕ активен (как вы и просили)
