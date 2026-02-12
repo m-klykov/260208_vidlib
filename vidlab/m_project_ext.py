@@ -7,6 +7,7 @@ from .f_crop import FilterCrop
 from .f_levels import FilterLevels
 from .f_object_detecctor import FilterObjectDetector
 from .f_scene_det import FilterSceneDetector
+from .f_stabilizer import FilterStabilizer
 from .m_project import VideoProjectModel
 
 
@@ -22,6 +23,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "Crop": FilterCrop,
             "Scene Detector": FilterSceneDetector,
             "AI Object Detector": FilterObjectDetector,
+            "Stabilizer": FilterStabilizer,
         }
 
     def load_project(self, video_path):

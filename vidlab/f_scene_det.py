@@ -1,7 +1,6 @@
 import json
 import os
 import cv2
-from .f_base import FilterBase
 from .f_asinc_base import FilterAsyncBase
 
 class FilterSceneDetector(FilterAsyncBase):
