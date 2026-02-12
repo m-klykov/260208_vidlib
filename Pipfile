@@ -7,6 +7,7 @@ name = "pypi"
 pyside6 = "*"
 opencv-python = "*"
 numpy = "*"
+ultralytics = "*"
 
 [dev-packages]
 

@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="ctrl arrow for jump to mrkers">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="move save methods in asinc_base, fix controller.to_end, min_scene_dur in scene decector">
+      <change afterPath="$PROJECT_DIR$/vidlab/f_object_detecctor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_asinc_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_asinc_base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_scene_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_scene_det.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pipfile" beforeDir="false" afterPath="$PROJECT_DIR$/Pipfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pipfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Pipfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -302,11 +304,18 @@
       <option name="project" value="LOCAL" />
       <updated>1770847654944</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="move save methods in asinc_base, fix controller.to_end, min_scene_dur in scene decector">
+      <option name="closed" value="true" />
+      <created>1770854651189</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1770854651189</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="base functional video playback" />
     <MESSAGE value="add scene list widget, last frame buff" />
     <MESSAGE value="add cur and total time" />
     <MESSAGE value="recent files, settings model, restore grometry" />
@@ -331,7 +340,8 @@
     <MESSAGE value="asinc scene detector mehanik" />
     <MESSAGE value="real scene detector, saved to cash folder" />
     <MESSAGE value="ctrl arrow for jump to mrkers" />
-    <option name="LAST_COMMIT_MESSAGE" value="ctrl arrow for jump to mrkers" />
+    <MESSAGE value="move save methods in asinc_base, fix controller.to_end, min_scene_dur in scene decector" />
+    <option name="LAST_COMMIT_MESSAGE" value="move save methods in asinc_base, fix controller.to_end, min_scene_dur in scene decector" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
