@@ -1,12 +1,13 @@
 import cv2
 import os
 import json
-
+import numpy as np
 import torch
 from ultralytics import YOLO
 from .f_base import FilterBase
 
 CASH_TO_FILE = False # сохраняем ли кеш на диск
+USE_SEGMENTATION = True # Переключатель режима
 
 class FilterObjectDetector(FilterBase):
     def __init__(self, num, cache_dir, params=None):
@@ -15,7 +16,8 @@ class FilterObjectDetector(FilterBase):
             params = {
                 "conf": 0.25,
                 "show_labels": True,
-                "use_cache": False
+                "use_cache": False,
+                "mask_opacity": 0.3  # Добавим прозрачность для заливки
             }
         super().__init__(num, cache_dir, params)
         self.name = "AI Object Detector"
@@ -34,25 +36,27 @@ class FilterObjectDetector(FilterBase):
         return {
             "conf": {"type": "float", "min": 0.1, "max": 1.0, "default": 0.25},
             "show_labels": {"type": "bool", "default": True},
-            "use_cache": {"type": "bool", "default": True}
+            # "use_cache": {"type": "bool", "default": True},
+            "show_contour": {"type": "bool", "default": True},  # Новый флаг
+            "mask_opacity": {"type": "float", "min": 0.0, "max": 1.0, "default": 0.3}
         }
 
     def _get_model(self):
         """Ленивая инициализация модели YOLO"""
         if self._model is None:
-            # При первом вызове скачает yolov8n.pt (около 6 МБ)
-            # Указываем относительный или абсолютный путь.
-            # Если файла там нет, YOLO скачает его именно туда.
-            model_path = os.path.join(os.getcwd(), 'models', 'yolov8n.pt')
+            # Выбираем файл модели в зависимости от константы
+            model_name = 'yolov8n-seg.pt' if USE_SEGMENTATION else 'yolov8n.pt'
+            model_path = os.path.join(os.getcwd(), 'models', model_name)
             self._model = YOLO(model_path)
 
-            # Проверяем доступность CUDA (NVIDIA GPU)
+            # Получаем словарь всех классов
+            classes = self._model.names
+            print(f"AI Detector loaded. Known objects: {len(classes)}")
+            # print(classes) # Раскомментируйте, чтобы увидеть весь список {ID: 'Name'}
+
             if torch.cuda.is_available():
                 self._model.to('cuda')
-                print("AI Detector: Using GPU (CUDA)")
-            else:
-                print("AI Detector: GPU not found, using CPU")
-
+                print(f"AI Detector: Using GPU (CUDA) with {'Segmentation' if USE_SEGMENTATION else 'BBox'}")
         return self._model
 
     def get_cache_path(self):
@@ -80,134 +84,125 @@ class FilterObjectDetector(FilterBase):
             print(f"Error saving AI cache: {e}")
 
     def process(self, frame, idx):
-        # Если фильтр не в фокусе — пропускаем обработку (Overlay mode)
         if not self.focused:
             return frame
 
         detections = None
         use_cache = self.get_param("use_cache")
 
-        # 1. Пытаемся взять из кеша
         if use_cache and idx in self._memory_cache:
             detections = self._memory_cache[idx]
         else:
-            # 2. Вызываем нейросеть
             model = self._get_model()
-
-            # ВАЖНО: Определяем устройство один раз
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-            # ОПТИМИЗИРОВАННЫЙ ВЫЗОВ
             results = model.predict(
                 frame,
                 device=device,
                 conf=self.get_param("conf"),
-                half=(device == 'cuda'),  # Ускоряет GPU в 2 раза
-                imgsz=320,  # Уменьшаем внутреннее разрешение нейросети (стандарт 640)
-                max_det=20,  # Ограничиваем кол-во объектов для скорости
+                half=(device == 'cuda'),
+                imgsz=320,
+                max_det=20,
                 verbose=False
             )
 
-            if results and len(results[0].boxes) > 0:
-                res = results[0].cpu() # Переносим результат обратно на CPU для отрисовки
+            if results and len(results[0]) > 0:
+                res = results[0].cpu()
                 detections = []
-                for box in res.boxes:
-                    # Сохраняем только самое нужное
-                    detections.append({
-                        "bbox": box.xyxy[0].tolist(),  # [x1, y1, x2, y2]
-                        "conf": float(box.conf[0]),
-                        "cls": int(box.cls[0]),
-                        "name": res.names[int(box.cls[0])]
-                    })
 
-                if use_cache:
-                    self._add_to_cache(idx, detections)
+                # Логика извлечения данных
+                if USE_SEGMENTATION and res.masks is not None:
+                    # Извлекаем контуры (полигоны)
+                    for i, mask in enumerate(res.masks.xy):
+                        detections.append({
+                            "poly": mask.tolist(),  # Список точек [[x,y], [x,y]...]
+                            "name": res.names[int(res.boxes.cls[i])],
+                            "bbox": res.boxes.xyxy[i].tolist()  # Ббокс все равно берем для текста
+                        })
+                else:
+                    # Старая логика с боксами
+                    for box in res.boxes:
+                        detections.append({
+                            "bbox": box.xyxy[0].tolist(),
+                            "name": res.names[int(box.cls[0])]
+                        })
 
+                if use_cache: self._add_to_cache(idx, detections)
                 self._update_ranges(idx)
 
-
-        # 3. Отрисовка результатов
+        # 3. Отрисовка
         if detections:
-            for obj in detections:
-                x1, y1, x2, y2 = map(int, obj["bbox"])
+            self._draw_detections(frame, detections)
 
-                # Рисуем стильную рамку
-                color = (0, 255, 127)  # Ярко-зеленый
-                cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-
-                if self.get_param("show_labels"):
-                    label_text = f"{obj['name']}" #  {obj['conf']:.2f}
-                    # Параметры шрифта
-                    font = cv2.FONT_HERSHEY_DUPLEX  # Более плотный шрифт
-                    font_scale = 1
-                    thickness = 2
-
-                    # Считаем размер текста для подложки
-                    (tw, th), baseline = cv2.getTextSize(label_text, font, font_scale, thickness)
-
-                    # Рисуем заполненный прямоугольник (фон бирки)
-                    # Делаем его чуть шире текста для отступов
-                    cv2.rectangle(frame,
-                                  (x1, y1 - th - 10),
-                                  (x1 + tw + 4, y1),
-                                  color, -1)  # -1 заполнит фигуру цветом
-
-                    # Пишем текст черным цветом поверх зеленой плашки
-                    cv2.putText(frame, label_text, (x1 + 2, y1 - 7),
-                                font, font_scale, (0, 0, 0), thickness, cv2.LINE_AA)
         return frame
 
-    def _update_ranges(self, idx):
+    def _draw_detections(self, frame, detections):
+        overlay = frame.copy() if self.get_param("mask_opacity") > 0 else None
+        show_contour = self.get_param("show_contour")
+        color = (0, 255, 127)  # Основной цвет
 
+        for obj in detections:
+            # 1. Рисуем контур или бокс
+            if USE_SEGMENTATION and show_contour and "poly" in obj:
+                pts = np.array(obj["poly"], np.int32)
+                # Рисуем обводку
+                cv2.polylines(frame, [pts], True, color, 2, cv2.LINE_AA)
+                # Рисуем заливку на оверлее
+                if overlay is not None:
+                    cv2.fillPoly(overlay, [pts], color)
+            else:
+                x1, y1, x2, y2 = map(int, obj["bbox"])
+                cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+
+            # 2. Рисуем подпись (всегда по координатам bbox)
+            if self.get_param("show_labels"):
+                self._draw_label(frame, obj)
+
+        # Применяем прозрачную заливку
+        if overlay is not None:
+            alpha = self.get_param("mask_opacity")
+            cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+
+    def _draw_label(self, frame, obj):
+        x1, y1, x2, y2 = map(int, obj["bbox"])
+        color = (0, 255, 127)
+        label_text = obj["name"].upper()
+        font = cv2.FONT_HERSHEY_DUPLEX
+        scale, thick = 0.7, 1
+
+        (tw, th), _ = cv2.getTextSize(label_text, font, scale, thick)
+        cv2.rectangle(frame, (x1, y1 - th - 10), (x1 + tw + 4, y1), color, -1)
+        cv2.putText(frame, label_text, (x1 + 2, y1 - 7), font, scale, (0, 0, 0), thick, cv2.LINE_AA)
+
+    def _update_ranges(self, idx):
+        # 1. Добавляем новый "микро-интервал"
+        self._analyzed_ranges.append([idx, idx])
+
+        # 2. Сортируем по началу (важно для правильной склейки)
+        self._analyzed_ranges.sort(key=lambda x: x[0])
+
+        # 3. Склеиваем накладывающиеся или идущие впритык
+        merged = []
         if not self._analyzed_ranges:
-            self._analyzed_ranges.append([idx, idx])
             return
 
-        # 2. Обновляем диапазоны
-        new_ranges = []
-        prev_range = None
-        use_idx = False
+        curr_start, curr_end = self._analyzed_ranges[0]
 
-        for range in self._analyzed_ranges:
-            if range[1]+1 < idx:
-                # блоки до нас
-                new_ranges.append(range)
-            elif range[1]+1 == idx:
-                # добавляемся к блоку в конец
-                prev_range = [range[0],idx]
-                use_idx = True
-            elif idx+1 == range[0]:
-                # мы пишемся в начале блока
-                if prev_range:
-                    #склеили два блока
-                    new_ranges.append([prev_range[0],range[1]])
-                    prev_range = None
+        for i in range(1, len(self._analyzed_ranges)):
+            next_start, next_end = self._analyzed_ranges[i]
 
-                else:
-                    # расширяем в качале
-                    new_ranges.append([idx, range[1]])
-                use_idx = True
+            # Если интервалы пересекаются или идут подряд (допуск +1)
+            if next_start <= curr_end + 1:
+                # Расширяем текущий конец, если следующий интервал длиннее
+                curr_end = max(curr_end, next_end)
             else:
-                if prev_range:
-                    #пишем прошлую запись с idx в конце
-                    new_ranges.append(prev_range)
-                    prev_range = None
+                # Разрыв найден: сохраняем старый интервал и начинаем новый
+                merged.append([curr_start, curr_end])
+                curr_start, curr_end = next_start, next_end
 
-                if not use_idx and idx+1 < range[0]:
-                    # все элементы с этого после нас, вписыавем себя отним кадром
-                    new_ranges.append([idx, idx])
-                    use_idx = True
-
-                # элементы посте нас
-                new_ranges.append(range)
-
-        if prev_range:
-            #пишем прошлую запись с idx в конце
-            new_ranges.append(prev_range)
-        elif not use_idx:
-            new_ranges.append([idx, idx])
-
-        self._analyzed_ranges = new_ranges
+        # Не забываем добавить последний интервал
+        merged.append([curr_start, curr_end])
+        self._analyzed_ranges = merged
 
 
     def _add_to_cache(self, idx, detections):
