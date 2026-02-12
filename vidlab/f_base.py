@@ -18,6 +18,10 @@ class FilterBase(QObject):
         self.focused = False
         self._lock = QMutex()
 
+        # Временные списки для работы в памяти (не сериализуются автоматически)
+        self._analyzed_ranges = []
+        self._detected_scenes = []
+
     def get_id(self):
         # Превращает "Scene Detector" в "scene_detector_1"
         clean_name = self.name.lower().replace(" ", "_")
@@ -94,10 +98,10 @@ class FilterBase(QObject):
         pass
 
     def get_timeline_data(self):
-        """Данные для отрисовки на таймлайне (диапазоны, метки)"""
+        """Переопределяем, чтобы отдавать данные не из params, а из внутренних списков"""
         return {
-            "ranges": self.get_param("analyzed_ranges", []),
-            "marks": self.get_param("detected_scenes", [])
+            "ranges": self._analyzed_ranges,
+            "marks": self._detected_scenes
         }
 
     def handle_mouse_move(self, pos, rect):

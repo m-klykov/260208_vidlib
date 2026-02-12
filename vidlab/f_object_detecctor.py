@@ -15,7 +15,7 @@ class FilterObjectDetector(FilterBase):
             params = {
                 "conf": 0.25,
                 "show_labels": True,
-                "use_cache": True
+                "use_cache": False
             }
         super().__init__(num, cache_dir, params)
         self.name = "AI Object Detector"
@@ -108,8 +108,6 @@ class FilterObjectDetector(FilterBase):
                 verbose=False
             )
 
-            results = model(frame, conf=self.get_param("conf"), verbose=False)
-
             if results and len(results[0].boxes) > 0:
                 res = results[0].cpu() # Переносим результат обратно на CPU для отрисовки
                 detections = []
@@ -123,10 +121,10 @@ class FilterObjectDetector(FilterBase):
                     })
 
                 if use_cache:
-                    self._memory_cache[idx] = detections
-                    # Сохраняем на диск каждые 100 новых найденных кадров (опционально)
-                    if CASH_TO_FILE and len(self._memory_cache) % 100 == 0:
-                        self.save_cache()
+                    self._add_to_cache(idx, detections)
+
+                self._update_ranges(idx)
+
 
         # 3. Отрисовка результатов
         if detections:
@@ -158,6 +156,69 @@ class FilterObjectDetector(FilterBase):
                     cv2.putText(frame, label_text, (x1 + 2, y1 - 7),
                                 font, font_scale, (0, 0, 0), thickness, cv2.LINE_AA)
         return frame
+
+    def _update_ranges(self, idx):
+
+        if not self._analyzed_ranges:
+            self._analyzed_ranges.append([idx, idx])
+            return
+
+        # 2. Обновляем диапазоны
+        new_ranges = []
+        prev_range = None
+        use_idx = False
+
+        for range in self._analyzed_ranges:
+            if range[1]+1 < idx:
+                # блоки до нас
+                new_ranges.append(range)
+            elif range[1]+1 == idx:
+                # добавляемся к блоку в конец
+                prev_range = [range[0],idx]
+                use_idx = True
+            elif idx+1 == range[0]:
+                # мы пишемся в начале блока
+                if prev_range:
+                    #склеили два блока
+                    new_ranges.append([prev_range[0],range[1]])
+                    prev_range = None
+
+                else:
+                    # расширяем в качале
+                    new_ranges.append([idx, range[1]])
+                use_idx = True
+            else:
+                if prev_range:
+                    #пишем прошлую запись с idx в конце
+                    new_ranges.append(prev_range)
+                    prev_range = None
+
+                if not use_idx and idx+1 < range[0]:
+                    # все элементы с этого после нас, вписыавем себя отним кадром
+                    new_ranges.append([idx, idx])
+                    use_idx = True
+
+                # элементы посте нас
+                new_ranges.append(range)
+
+        if prev_range:
+            #пишем прошлую запись с idx в конце
+            new_ranges.append(prev_range)
+        elif not use_idx:
+            new_ranges.append([idx, idx])
+
+        self._analyzed_ranges = new_ranges
+
+
+    def _add_to_cache(self, idx, detections):
+        # 1. Записываем сами данные
+
+        self._memory_cache[idx] = detections
+
+        # 3. Сохраняем (опционально)
+        if  CASH_TO_FILE and len(self._memory_cache) % 100 == 0:
+            self.save_cache()
+
 
     def __del__(self):
         # При удалении фильтра сохраняем накопленный кеш

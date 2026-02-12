@@ -36,10 +36,6 @@ class FilterAsyncBase(FilterBase):
         self._thread = None
         self._worker = None
 
-        # Временные списки для работы в памяти (не сериализуются автоматически)
-        self._analyzed_ranges = []
-        self._detected_scenes = []
-
     def get_data_filepath(self):
         """Формирует путь к файлу кеша на основе ID фильтра"""
         return os.path.join(self.cache_dir, f"{self.get_id()}.json")
@@ -75,13 +71,6 @@ class FilterAsyncBase(FilterBase):
         if self._thread:
             self._thread.quit()
             self._thread.wait()  # Ждем реальной остановки
-
-    def get_timeline_data(self):
-        """Переопределяем, чтобы отдавать данные не из params, а из внутренних списков"""
-        return {
-            "ranges": self._analyzed_ranges,
-            "marks": self._detected_scenes
-        }
 
     def _on_worker_progress(self, data):
         """Обновление данных из потока (выполняется в UI-потоке)"""
