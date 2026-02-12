@@ -1,4 +1,5 @@
-
+import json
+import os
 import cv2
 from .f_base import FilterBase
 from .f_asinc_base import FilterAsyncBase
@@ -14,6 +15,41 @@ class FilterSceneDetector(FilterAsyncBase):
 
         # обязательно, в базовом классе не вызывается
         self.load_data()
+
+    def save_data(self):
+        """Сохраняет результаты анализа в файл кеша"""
+        if not self.cache_dir:
+            print(f"Warning: cache_dir not set for {self.name}")
+            return
+
+            # 2. Создаем папку, если её еще не существует
+        try:
+            os.makedirs(self.cache_dir, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating cache directory {self.cache_dir}: {e}")
+            return
+
+        data = {
+            "ranges": self._analyzed_ranges,
+            "marks": self._detected_scenes
+        }
+        try:
+            with open(self.get_data_filepath(), 'w') as f:
+                json.dump(data, f)
+        except Exception as e:
+            print(f"Error saving cache for {self.name}: {e}")
+
+    def load_data(self):
+        """Загружает результаты анализа из файла кеша"""
+        path = self.get_data_filepath()
+        if os.path.exists(path):
+            try:
+                with open(path, 'r') as f:
+                    data = json.load(f)
+                    self._analyzed_ranges = data.get("ranges", [])
+                    self._detected_scenes = data.get("marks", [])
+            except Exception as e:
+                print(f"Error loading cache for {self.name}: {e}")
 
 
     def get_params_metadata(self):
@@ -96,4 +132,19 @@ class FilterSceneDetector(FilterAsyncBase):
         })
 
         cap.release()
+
+
+    def _on_worker_progress(self, data):
+        """Обновление данных из потока (выполняется в UI-потоке)"""
+        # Мы используем наши новые сеттеры/геттеры
+        if "progress" in data:
+            self.progress = data["progress"]
+
+        if "ranges" in data:
+            self._analyzed_ranges = data["ranges"]
+
+        if "marks" in data:
+            self._detected_scenes = data["marks"]
+
+        self.save_data()
 

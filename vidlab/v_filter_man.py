@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
                                QListWidgetItem, QPushButton, QMenu, QCheckBox, QLabel, QScrollArea, QMessageBox,
-                               QProgressBar)
+                               QProgressBar, QSlider)
 from PySide6.QtCore import Qt, Signal, QTimer
 
 from vidlab.c_video import VideoController
@@ -184,48 +184,84 @@ class FilterManagerWidget(QWidget):
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel(f"{key}:"))
 
-        if info['type'] == 'int':
-            from PySide6.QtWidgets import QSlider
+        p_type = info.get('type')
+        current_val = filter_obj.get_param(key, info.get('default'))
+
+        # Создаем запись в словаре виджетов
+        self.param_widgets[key] = {'type': p_type}
+
+        if p_type == 'int':
             slider = QSlider(Qt.Horizontal)
             slider.setRange(info['min'], info['max'])
-            slider.setValue(filter_obj.get_param(key, info['default']))
-
-            value_label = QLabel(str(slider.value()))
-
-            # Сохраняем ссылку на слайдер и лейбл
-            self.param_widgets[key] = (slider, value_label)
+            slider.setValue(int(current_val))
+            label = QLabel(str(slider.value()))
 
             slider.valueChanged.connect(lambda v, k=key: self._on_ui_param_changed(v, k))
             hbox.addWidget(slider)
-            hbox.addWidget(value_label)
+            hbox.addWidget(label)
+
+            self.param_widgets[key].update({'widget': slider, 'label': label})
+
+        elif p_type == 'float':
+            slider = QSlider(Qt.Horizontal)
+            slider.setRange(int(info['min'] * 100), int(info['max'] * 100))
+            slider.setValue(int(current_val * 100))
+            label = QLabel(f"{current_val:.2f}")
+
+            slider.valueChanged.connect(lambda v, k=key: self._on_ui_param_changed(v / 100.0, k))
+            hbox.addWidget(slider)
+            hbox.addWidget(label)
+
+            self.param_widgets[key].update({'widget': slider, 'label': label})
+
+        elif p_type == 'bool':
+            checkbox = QCheckBox()
+            checkbox.setChecked(bool(current_val))
+            checkbox.toggled.connect(lambda v, k=key: self._on_ui_param_changed(v, k))
+            hbox.addWidget(checkbox)
+
+            self.param_widgets[key].update({'widget': checkbox, 'label': None})
 
         self.params_layout.addLayout(hbox)
 
     def _on_ui_param_changed(self, value, key):
-        """Когда пользователь крутит ползунок"""
-        if self._current_filter_obj:
-            self._current_filter_obj.set_param(key, value)
-            # real_value =  self._current_filter_obj.get_param(key)
-            # Обновляем текст рядом с ползунком
-            if key in self.param_widgets:
-                slider, label = self.param_widgets[key]
-                label.setText(str(value))
-
-            self.project.save_project()
-            self.controller.refresh_current_frame()
-
-    def _update_ui_from_params(self):
-        """Когда параметры изменились в фильтре (от мышки)"""
         if not self._current_filter_obj: return
 
-        # Блокируем сигналы слайдеров, чтобы не было зацикливания
-        # (UI -> Filter -> UI)
-        for key, (slider, label) in self.param_widgets.items():
-            new_val = int(self._current_filter_obj.get_param(key))
-            slider.blockSignals(True)
-            slider.setValue(new_val)
-            label.setText(str(new_val))
-            slider.blockSignals(False)
+        self._current_filter_obj.set_param(key, value)
+        data = self.param_widgets.get(key)
+
+        if data and data['label']:
+            if data['type'] == 'float':
+                data['label'].setText(f"{value:.2f}")
+            else:
+                data['label'].setText(str(value))
+
+        self.project.save_project()
+        self.controller.refresh_current_frame()
+
+    def _update_ui_from_params(self):
+        if not self._current_filter_obj: return
+
+        for key, data in self.param_widgets.items():
+            widget = data['widget']
+            label = data['label']
+            p_type = data['type']
+            val = self._current_filter_obj.get_param(key)
+
+            widget.blockSignals(True)
+
+            if p_type == 'int':
+                widget.setValue(int(val))
+                if label: label.setText(str(int(val)))
+
+            elif p_type == 'float':
+                widget.setValue(int(val * 100))
+                if label: label.setText(f"{val:.2f}")
+
+            elif p_type == 'bool':
+                widget.setChecked(bool(val))
+
+            widget.blockSignals(False)
 
     def _show_add_menu(self):
         menu = QMenu(self)

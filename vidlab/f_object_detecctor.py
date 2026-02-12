@@ -1,6 +1,8 @@
 import cv2
 import os
 import json
+
+import torch
 from ultralytics import YOLO
 from .f_base import FilterBase
 
@@ -43,6 +45,14 @@ class FilterObjectDetector(FilterBase):
             # Если файла там нет, YOLO скачает его именно туда.
             model_path = os.path.join(os.getcwd(), 'models', 'yolov8n.pt')
             self._model = YOLO(model_path)
+
+            # Проверяем доступность CUDA (NVIDIA GPU)
+            if torch.cuda.is_available():
+                self._model.to('cuda')
+                print("AI Detector: Using GPU (CUDA)")
+            else:
+                print("AI Detector: GPU not found, using CPU")
+
         return self._model
 
     def get_cache_path(self):
@@ -83,10 +93,25 @@ class FilterObjectDetector(FilterBase):
         else:
             # 2. Вызываем нейросеть
             model = self._get_model()
+
+            # ВАЖНО: Определяем устройство один раз
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+            # ОПТИМИЗИРОВАННЫЙ ВЫЗОВ
+            results = model.predict(
+                frame,
+                device=device,
+                conf=self.get_param("conf"),
+                half=(device == 'cuda'),  # Ускоряет GPU в 2 раза
+                imgsz=320,  # Уменьшаем внутреннее разрешение нейросети (стандарт 640)
+                max_det=20,  # Ограничиваем кол-во объектов для скорости
+                verbose=False
+            )
+
             results = model(frame, conf=self.get_param("conf"), verbose=False)
 
             if results and len(results[0].boxes) > 0:
-                res = results[0]
+                res = results[0].cpu() # Переносим результат обратно на CPU для отрисовки
                 detections = []
                 for box in res.boxes:
                     # Сохраняем только самое нужное
