@@ -202,7 +202,7 @@ class VideoController(QObject):
         self.seek(self.model.get_min_index())
 
     def to_end(self):
-        self.seek(self.model.get_max_index())
+        self.seek(self.model.get_max_index()-1)
 
     def get_in_index(self):
         return self.project.get_in_frame(self.model.get_min_index())
