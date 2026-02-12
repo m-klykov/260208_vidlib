@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
                                QListWidgetItem, QPushButton, QMenu, QCheckBox, QLabel, QScrollArea, QMessageBox,
-                               QProgressBar, QSlider)
+                               QProgressBar, QSlider, QComboBox, QSpinBox)
 from PySide6.QtCore import Qt, Signal, QTimer
 
 from vidlab.c_video import VideoController
@@ -222,6 +222,32 @@ class FilterManagerWidget(QWidget):
 
             self.param_widgets[key].update({'widget': checkbox, 'label': None})
 
+        elif p_type == 'int_spin':
+            spin = QSpinBox()
+            spin.setRange(info.get('min', 0), info.get('max', 10000))
+            spin.setValue(int(current_val))
+            # Убираем кнопки-стрелочки, если нужно компактнее: spin.setButtonSymbols(QAbstractSpinBox.NoButtons)
+
+            spin.valueChanged.connect(lambda v, k=key: self._on_ui_param_changed(v, k))
+            hbox.addWidget(spin)
+
+            self.param_widgets[key].update({'widget': spin, 'label': None})
+
+        elif p_type == 'list':
+            combo = QComboBox()
+            items = info.get('values', [])
+            combo.addItems([str(i) for i in items])
+
+            # Устанавливаем текущее значение
+            idx = combo.findText(str(current_val))
+            if idx >= 0:
+                combo.setCurrentIndex(idx)
+
+            combo.currentTextChanged.connect(lambda v, k=key: self._on_ui_param_changed(v, k))
+            hbox.addWidget(combo)
+
+            self.param_widgets[key].update({'widget': combo, 'label': None})
+
         self.params_layout.addLayout(hbox)
 
     def _on_ui_param_changed(self, value, key):
@@ -260,6 +286,14 @@ class FilterManagerWidget(QWidget):
 
             elif p_type == 'bool':
                 widget.setChecked(bool(val))
+
+            elif p_type == 'int_spin':
+                widget.setValue(int(val))
+
+            elif p_type == 'list':
+                idx = widget.findText(str(val))
+                if idx >= 0:
+                    widget.setCurrentIndex(idx)
 
             widget.blockSignals(False)
 
