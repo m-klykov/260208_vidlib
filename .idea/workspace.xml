@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="gpu used, update ranges">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="add segmentation model, show contur. new range extractor">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_object_detecctor.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_object_detecctor.py" afterDir="false" />
     </list>
@@ -332,11 +332,18 @@
       <option name="project" value="LOCAL" />
       <updated>1770872730012</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="add segmentation model, show contur. new range extractor">
+      <option name="closed" value="true" />
+      <created>1770913787624</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1770913787624</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="active rirle and status bar info" />
     <MESSAGE value="editable scene list saved in jshn for each file" />
     <MESSAGE value="scene list context menu" />
     <MESSAGE value="in place editing" />
@@ -361,7 +368,8 @@
     <MESSAGE value="ai obj detector" />
     <MESSAGE value="using cuda version torch, float and bool type in filter_man" />
     <MESSAGE value="gpu used, update ranges" />
-    <option name="LAST_COMMIT_MESSAGE" value="gpu used, update ranges" />
+    <MESSAGE value="add segmentation model, show contur. new range extractor" />
+    <option name="LAST_COMMIT_MESSAGE" value="add segmentation model, show contur. new range extractor" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

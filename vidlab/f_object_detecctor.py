@@ -4,12 +4,14 @@ import json
 import numpy as np
 import torch
 from ultralytics import YOLO
+
+from .f_asinc_base import FilterAsyncBase
 from .f_base import FilterBase
 
 CASH_TO_FILE = False # сохраняем ли кеш на диск
 USE_SEGMENTATION = True # Переключатель режима
 
-class FilterObjectDetector(FilterBase):
+class FilterObjectDetector(FilterAsyncBase):
     def __init__(self, num, cache_dir, params=None):
         # Настройки по умолчанию
         if not params:
@@ -45,7 +47,8 @@ class FilterObjectDetector(FilterBase):
         """Ленивая инициализация модели YOLO"""
         if self._model is None:
             # Выбираем файл модели в зависимости от константы
-            model_name = 'yolov8n-seg.pt' if USE_SEGMENTATION else 'yolov8n.pt'
+            # model_name = 'yolov8n-seg.pt' if USE_SEGMENTATION else 'yolov8n.pt'
+            model_name = 'yolov8s-seg.pt' if USE_SEGMENTATION else 'yolov8s.pt'
             model_path = os.path.join(os.getcwd(), 'models', model_name)
             self._model = YOLO(model_path)
 
@@ -84,8 +87,8 @@ class FilterObjectDetector(FilterBase):
             print(f"Error saving AI cache: {e}")
 
     def process(self, frame, idx):
-        if not self.focused:
-            return frame
+        # if not self.focused:
+        #     return frame
 
         detections = None
         use_cache = self.get_param("use_cache")
@@ -101,7 +104,7 @@ class FilterObjectDetector(FilterBase):
                 device=device,
                 conf=self.get_param("conf"),
                 half=(device == 'cuda'),
-                imgsz=320,
+                # imgsz=320,
                 max_det=20,
                 verbose=False
             )
@@ -219,3 +222,89 @@ class FilterObjectDetector(FilterBase):
         # При удалении фильтра сохраняем накопленный кеш
         if CASH_TO_FILE and self._memory_cache:
             self.save_cache()
+
+    def run_internal_logic(self, worker):
+        """Асинхронное сканирование видео нейросетью"""
+        cap = cv2.VideoCapture(self.video_path)
+        if not cap.isOpened():
+            raise Exception("Could not open video file")
+
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # 1. Подготовка модели (внутри потока)
+        model = self._get_model()
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+        # Список всех кадров, где были найдены объекты (для финальной склейки)
+        frames_with_objects = []
+        frame_idx = 0
+
+        while worker.is_running:
+            ret, curr_frame = cap.read()
+            if not ret:
+                break
+
+            # 2. Инференс на максималках
+            # imgsz=320 и half=True дают огромный прирост FPS на GPU
+            results = model.predict(
+                curr_frame,
+                device=device,
+                conf=self.get_param("conf"),
+                half=(device == 'cuda'),
+                imgsz=320,
+                verbose=False,
+                max_det=10  # Еще немного ускорим, ограничив кол-во объектов
+            )
+
+            # 3. Если что-то нашли — записываем индекс кадра
+            if results and len(results[0]) > 0:
+                frames_with_objects.append(frame_idx)
+
+            # 4. Отчет в UI каждые 50 кадров
+            if frame_idx % 50 == 0:
+                # На лету склеиваем текущие результаты для отображения на таймлайне
+                current_ranges = self._quick_merge(frames_with_objects)
+
+                worker.progress.emit({
+                    "progress": int(frame_idx / max(1, total_frames - 1) * 100),
+                    "ranges": current_ranges,
+                    "marks": []  # Объектам метки обычно не нужны, только интервалы
+                })
+
+            frame_idx += 1
+
+        # Финальная склейка и сохранение в основной класс
+        final_ranges = self._quick_merge(frames_with_objects)
+
+        worker.progress.emit({
+            "progress": 100,
+            "ranges": final_ranges,
+            "marks": []
+        })
+
+        cap.release()
+
+    def _quick_merge(self, frame_indices):
+        """Вспомогательная быстрая склейка индексов в интервалы [start, end]"""
+        if not frame_indices:
+            return []
+
+        # Важно: индексы при чтении cap.read() уже идут по порядку,
+        # но sort() не повредит для надежности
+        res = []
+        start = frame_indices[0]
+        prev = frame_indices[0]
+
+        # Допуск (gap) в 3 кадра, чтобы мелкие пропуски нейросети не рвали интервал
+        gap = 3
+
+        for i in range(1, len(frame_indices)):
+            curr = frame_indices[i]
+            if curr <= prev + gap:
+                prev = curr
+            else:
+                res.append([start, prev])
+                start = curr
+                prev = curr
+        res.append([start, prev])
+        return res
