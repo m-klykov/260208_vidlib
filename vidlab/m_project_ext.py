@@ -4,6 +4,7 @@ import os
 from .f_base import FilterBase
 from .f_bw import FilterBW
 from .f_crop import FilterCrop
+from .f_face_blur import FilterFaceBlur
 from .f_levels import FilterLevels
 from .f_object_detecctor import FilterObjectDetector
 from .f_resize import FilterResize
@@ -25,6 +26,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "Resize": FilterResize,
             "Scene Detector": FilterSceneDetector,
             "AI Object Detector": FilterObjectDetector,
+            "AI Face Blur": FilterFaceBlur,
             "Stabilizer": FilterStabilizer,
         }
 
