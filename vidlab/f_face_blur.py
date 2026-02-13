@@ -19,6 +19,10 @@ class FilterFaceBlur(FilterAsyncBase):
         self.name = "AI Face Blur"
         self._model = None
 
+        # Хранилище для сглаживания: { id: {'box': [x1,y1,x2,y2], 'lost_count': 0} }
+        self._face_memory = {}
+        self._max_lost_frames = 5  # Сколько кадров "держать" маску после исчезновения
+
     def get_params_metadata(self):
         return {
             "conf": {"type": "float", "min": 0.1, "max": 1.0, "default": 0.3},
@@ -32,30 +36,53 @@ class FilterFaceBlur(FilterAsyncBase):
             # Можно использовать yolov8n-face.pt (нужно скачать в папку models)
             model_path = os.path.join(os.getcwd(), 'models', 'yolov8n-face.pt')
             self._model = YOLO(model_path)
+
             if torch.cuda.is_available():
                 self._model.to('cuda')
+                print("use cuda")
         return self._model
 
     def process(self, frame, idx):
         model = self._get_model()
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+        current_boxes = []
         # 1. Быстрый поиск лиц
-        results = model.predict(
+        results = model.predict( #predict track
             frame,
             device=device,
+            # persist=True,
             conf=self.get_param("conf"),
             half=(device == 'cuda'),
-            imgsz=320,  # Уменьшаем размер для скорости
+            # imgsz=320,  # Уменьшаем размер для скорости
             verbose=False,
             max_det=50
         )
 
-        if not results or len(results[0]) == 0:
-            return frame
+        if results and len(results[0]) > 0:
+            res = results[0].cpu()
 
-        h_img, w_img = frame.shape[:2]
-        res = results[0].cpu()
+            for box in res.boxes:
+                # Берем ID трекера, если есть, иначе просто индекс
+                track_id = int(box.id[0]) if box.id is not None else len(current_boxes)
+                coords = box.xyxy[0].tolist()
+                current_boxes.append((track_id, coords))
+
+        # Обновляем память
+        # 1. Помечаем все старые лица как "потерянные" на +1 кадр
+        for f_id in self._face_memory:
+            self._face_memory[f_id]['lost_count'] += 1
+
+        # 2. Записываем/обновляем те, что нашли сейчас
+        for t_id, coords in current_boxes:
+            self._face_memory[t_id] = {
+                'box': coords,
+                'lost_count': 0
+            }
+
+        # 3. Удаляем тех, кто потерялся слишком давно
+        self._face_memory = {k: v for k, v in self._face_memory.items()
+                             if v['lost_count'] < self._max_lost_frames}
 
         # Параметры размытия
         ksize = self.get_param("blur_size")
@@ -63,9 +90,10 @@ class FilterFaceBlur(FilterAsyncBase):
         use_pixelate = self.get_param("pixelate")
         use_ellipse = self.get_param("ellipse")
 
-        for box in res.boxes:
-            # Получаем координаты лица
-            x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+        # 4. Рендерим размытие для всех лиц из памяти
+        h_img, w_img = frame.shape[:2]
+        for f_id, data in self._face_memory.items():
+            x1, y1, x2, y2 = map(int, data['box'])
 
             # Ограничиваем координаты границами кадра
             x1, y1 = max(0, x1), max(0, y1)
