@@ -214,6 +214,26 @@ class FilterManagerWidget(QWidget):
 
             self.param_widgets[key].update({'widget': slider, 'label': label})
 
+            # ДОБАВЛЯЕМ КНОПКУ АНИМАЦИИ
+            if filter_obj.can_be_animated(key):
+                # Кнопка-ромбик
+                btn_anim = QPushButton("◆")  # Можно использовать иконку или символ
+                btn_anim.setCheckable(True)
+                btn_anim.setFixedSize(24, 24)
+
+                # Устанавливаем текущее состояние
+                is_anim = filter_obj.is_animated(key)
+                btn_anim.setChecked(is_anim)
+                self._style_anim_button(btn_anim, is_anim)
+
+                # Обработка нажатия
+                btn_anim.toggled.connect(lambda checked, k=key: self._on_toggle_animation(k, checked))
+
+                hbox.addWidget(btn_anim)
+                self.param_widgets[key].update({'anim_btn': btn_anim})
+
+
+
         elif p_type == 'bool':
             checkbox = QCheckBox()
             checkbox.setChecked(bool(current_val))
@@ -269,9 +289,6 @@ class FilterManagerWidget(QWidget):
             label.setStyleSheet("font-weight: bold; color: #2ecc71; margin-left: 8px;")
 
             # Подключаем сигналы к твоим методам
-
-
-
 
             hbox.addWidget(label)
             hbox.addStretch()
@@ -389,6 +406,44 @@ class FilterManagerWidget(QWidget):
             else:
                 data['label'].setText("---")
 
+    def _style_anim_button(self, btn, is_active):
+        """Подсветка кнопки: синяя, если анимировано"""
+        if is_active:
+            btn.setStyleSheet("background-color: #3498db; color: white; border-radius: 3px; font-weight: bold;")
+        else:
+            btn.setStyleSheet("background-color: #ecf0f1; color: #7f8c8d; border-radius: 3px;")
+
+    def _on_toggle_animation(self, key, is_set):
+        if not self._current_filter_obj:
+            return
+
+            # Если пользователь хочет выключить анимацию — спрашиваем
+        if not is_set:
+            confirmed = self._ask_confirm(
+                "Удаление анимации",
+                f"Вы уверены, что хотите удалить все ключевые кадры для '{key}'?\n"
+                "Параметр станет статичным."
+            )
+            if not confirmed:
+                # Возвращаем кнопку в активное состояние, если нажали "No"
+                btn = self.param_widgets[key].get('anim_btn')
+                if btn:
+                    btn.blockSignals(True)
+                    btn.setChecked(True)
+                    btn.blockSignals(False)
+                return
+
+            # Вызываем метод в фильтре
+        self._current_filter_obj.set_animation(key, is_set)
+
+        # Обновляем стиль кнопки
+        if key in self.param_widgets:
+            btn = self.param_widgets[key].get('anim_btn')
+            if btn:
+                self._style_anim_button(btn, is_set)
+
+        self.project.save_project()
+        self.controller.refresh_current_frame()
 
 
     def _show_add_menu(self):
@@ -474,3 +529,14 @@ class FilterManagerWidget(QWidget):
                 filter_obj.enabled = is_checked
                 self.project.save_project()
                 self.controller.refresh_current_frame()
+
+    def _ask_confirm(self, title, text):
+        """Универсальное окно подтверждения"""
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Question)
+        msg.setWindowTitle(title)
+        msg.setText(text)
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg.setDefaultButton(QMessageBox.No)  # Чтобы случайно не нажать Enter
+
+        return msg.exec() == QMessageBox.Yes

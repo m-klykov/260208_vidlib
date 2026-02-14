@@ -58,7 +58,7 @@ class SceneListWidget(QWidget):
         self.list_widget = QListWidget()
         self.delegate = SceneItemDelegate(self.controller, self)
         self.list_widget.setItemDelegate(self.delegate)
-        print(f"set delegate")
+        # print(f"set delegate")
 
 
         layout.addWidget(self.list_widget)

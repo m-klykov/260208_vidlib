@@ -85,6 +85,7 @@ class VideoController(QObject):
         # Прогоняем через все включенные фильтры в порядке их следования в списке
         for f in self.project.filters:
             if f.enabled and f.is_active_at(frame_idx):
+                f.set_current_frame(frame_idx)  # УВЕДОМЛЯЕМ ФИЛЬТР О КАДРЕ
                 processed = f.process(processed, frame_idx)
         return processed
 
@@ -94,6 +95,7 @@ class VideoController(QObject):
             frame = self.get_processed_frame(frame, frame_idx)
             self.frame_updated.emit(frame)
             self.position_changed.emit(frame_idx)
+            self.filter_params_changed.emit()
 
     def _play_step(self):
         frame = self.model.get_frame()

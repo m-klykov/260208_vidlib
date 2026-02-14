@@ -18,6 +18,8 @@ class FilterBase(QObject):
         self.focused = False
         self._lock = QMutex()
 
+        self.current_frame_idx = 0  # Устанавливается контроллером перед процессом
+
         # Временные списки для работы в памяти (не сериализуются автоматически)
         self._analyzed_ranges = []
         self._detected_scenes = []
@@ -27,54 +29,113 @@ class FilterBase(QObject):
         clean_name = self.name.lower().replace(" ", "_")
         return f"{clean_name}_{self.num}"
 
+    def set_current_frame(self, idx):
+        """устанавливается из контроллера"""
+        self.current_frame_idx = idx
+
     def get_params(self):
         """Возвращает текущие значения параметров для сохранения в основной JSON"""
         with QMutexLocker(self._lock):
             return dict(self._params)
 
-    def get_param(self, key, default=None):
-        """
-        Безопасное чтение:
-        1. Из словаря параметров
-        2. Из метаданных (default значение)
-        3. Из аргумента default
-        """
+    def is_animated(self, key):
+        """Проверяет, хранится ли параметр как структура ключевых кадров"""
         with QMutexLocker(self._lock):
-            # 1. Если параметр уже задан (есть в словаре)
-            if key in self._params:
-                return self._params[key]
+            val = self._params.get(key)
+            return isinstance(val, dict) and val.get("is_animated") is True
 
-        # 2. Если в словаре нет, ищем в метаданных (вне лока, т.к. метаданные статичны)
+    def can_be_animated(self, key):
+        """Проверяет метаданные: разрешена ли анимация для этого типа"""
+        metadata = self.get_params_metadata()
+        if key not in metadata: return False
+
+        p_type = metadata[key].get('type')
+        # Разрешаем анимацию для чисел
+        return p_type in ['float']
+
+    def set_animation(self, key, is_set):
+        """Включает/выключает режим анимации для параметра"""
+        if not self.can_be_animated(key): return
+        if self.is_animated(key) == is_set: return
+
+        current_val = self.get_param(key)  # Получаем текущее (возможно интерполированное) значение
+
+        if not is_set:
+            # Выключаем: превращаем в обычное число (значение из текущего кадра)
+            with QMutexLocker(self._lock):
+                self._params[key] = current_val
+        else:
+            # Включаем: создаем структуру с первым ключом на текущем кадре
+            with QMutexLocker(self._lock):
+                self._params[key] = {
+                    "is_animated": True,
+                    "keys": {str(self.current_frame_idx): current_val}
+                }
+
+    def get_param(self, key, default=None):
+        with QMutexLocker(self._lock):
+            if key in self._params:
+                val = self._params[key]
+                # Если параметр анимирован — интерполируем
+                if isinstance(val, dict) and val.get("is_animated"):
+                    return self._interpolate(val["keys"], self.current_frame_idx)
+                return val
+
+        # 2. Метаданные (вне лока)
         metadata = self.get_params_metadata()
         if key in metadata and 'default' in metadata[key]:
             return metadata[key]['default']
-
-        # 3. Крайний случай
         return default
 
     def set_param(self, key, value):
-        """Безопасная запись с проверкой границ и уведомлением"""
         metadata = self.get_params_metadata()
+        if key not in metadata:
+            with QMutexLocker(self._lock):
+                self._params[key] = value
+            return
 
-        # 1. Валидация по метаданным
-        if key in metadata:
-            meta = metadata[key]
-            try:
-                if meta['type'] == 'int':
-                    value = int(max(meta['min'], min(meta['max'], value)))
-                elif meta['type'] == 'float':
-                    value = max(meta['min'], min(meta['max'], float(value)))
-            except (ValueError, TypeError):
-                return  # Некорректный тип, игнорируем
+        # 1. Валидация границ (общая для статики и ключей)
+        meta = metadata[key]
+        try:
+            if meta['type'] == 'int':
+                value = int(max(meta['min'], min(meta['max'], value)))
+            elif meta['type'] == 'float':
+                value = max(meta['min'], min(meta['max'], float(value)))
+        except:
+            return
 
-        # 2. Запись под замком
-        with QMutexLocker(self._lock):
-            if self._params.get(key) == value:
-                return  # Ничего не изменилось
-            self._params[key] = value
+        # 2. Запись
 
-        # 3. Уведомление системы
-        # self.params_changed.emit()
+        if self.is_animated(key):
+            with QMutexLocker(self._lock):
+                # Записываем ключ для текущего кадра
+                # Используем строки для ключей словаря (для совместимости с JSON)
+                self._params[key]["keys"][str(self.current_frame_idx)] = value
+        else:
+            # Обычная статичная запись
+            if self._params.get(key) == value: return
+            with QMutexLocker(self._lock):
+                self._params[key] = value
+
+    def _interpolate(self, keys_dict, current_frame):
+        if not keys_dict: return 0
+
+        # Сортируем кадры-ключи
+        frames = sorted([int(f) for f in keys_dict.keys()])
+
+        # Крайние точки
+        if current_frame <= frames[0]: return keys_dict[str(frames[0])]
+        if current_frame >= frames[-1]: return keys_dict[str(frames[-1])]
+
+        # Линейная интерполяция между соседями
+        for i in range(len(frames) - 1):
+            f1, f2 = frames[i], frames[i + 1]
+            if f1 <= current_frame <= f2:
+                v1 = keys_dict[str(f1)]
+                v2 = keys_dict[str(f2)]
+                t = (current_frame - f1) / (f2 - f1)
+                return v1 + (v2 - v1) * t
+        return 0
 
     def is_active_at(self, idx):
         # Если параметров нет — фильтр работает везде
