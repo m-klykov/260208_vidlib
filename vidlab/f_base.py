@@ -186,3 +186,38 @@ class FilterBase(QObject):
 
     def handle_mouse_release(self):
         pass
+
+    def get_keyframe_indices(self, param_names=None):
+        """Возвращает отсортированный список всех уникальных кадров-ключей для выбранных полей"""
+        with QMutexLocker(self._lock):
+            indices = set()
+            # Если список полей не задан, берем все анимированные
+            keys_to_check = param_names if param_names else self._params.keys()
+
+            for key in keys_to_check:
+                val = self._params.get(key)
+                if isinstance(val, dict) and val.get("is_animated"):
+                    indices.update([int(f) for f in val["keys"].keys()])
+            return sorted(list(indices))
+
+    def get_keyframes_data(self, param_names):
+        """
+        Возвращает словарь {frame_idx: {param1: val, param2: val}}
+        Позволяет рисовалке получить готовые координаты для всех точек маршрута.
+        """
+        indices = self.get_keyframe_indices(param_names)
+        result = {}
+
+        # Сохраняем текущий кадр, чтобы не сбить состояние фильтра
+        original_frame = self.current_frame_idx
+
+        for idx in indices:
+            self.set_current_frame(idx)
+            frame_data = {}
+            for name in param_names:
+                frame_data[name] = self.get_param(name)
+            result[idx] = frame_data
+
+        # Восстанавливаем состояние
+        self.set_current_frame(original_frame)
+        return result
