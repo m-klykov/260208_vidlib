@@ -4,9 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="add segmentation model, show contur. new range extractor">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="elipse filter move by mouse">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_bw.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_bw.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_ellipse.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_ellipse.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_face_blur.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_face_blur.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_levels.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_levels.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_object_detecctor.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_object_detecctor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_stabilizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_stabilizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_filter_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_timeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_timeline.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,9 +58,18 @@
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Python/260208_vidlib/vidlab&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Python\260208_vidlib\vidlab" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Python\260208_vidlib\vidlab" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="260208_vidlib" />
@@ -79,7 +97,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-884f5ed5d46b-c546a90a8094-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.22855.92" />
+        <option value="bundled-python-sdk-af26db0dccfe-c546a90a8094-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.26775.22" />
       </set>
     </attachedChunks>
   </component>
@@ -340,20 +358,90 @@
       <option name="project" value="LOCAL" />
       <updated>1770913787624</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="asinc scan for object detector">
+      <option name="closed" value="true" />
+      <created>1770920354464</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1770920354464</updated>
+    </task>
+    <task id="LOCAL-00033" summary="stabilizer">
+      <option name="closed" value="true" />
+      <created>1770930078315</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1770930078315</updated>
+    </task>
+    <task id="LOCAL-00034" summary="saw raw data only and lazy smoothing for stabiliser">
+      <option name="closed" value="true" />
+      <created>1770934233693</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1770934233693</updated>
+    </task>
+    <task id="LOCAL-00035" summary="crop with resize and resize filter to target dims">
+      <option name="closed" value="true" />
+      <created>1770936265887</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1770936265887</updated>
+    </task>
+    <task id="LOCAL-00036" summary="busted resize with offset and overlay">
+      <option name="closed" value="true" />
+      <created>1770938419474</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1770938419474</updated>
+    </task>
+    <task id="LOCAL-00037" summary="ai face blur">
+      <option name="closed" value="true" />
+      <created>1770941460001</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1770941460001</updated>
+    </task>
+    <task id="LOCAL-00038" summary="ai face blur with memory against face lost">
+      <option name="closed" value="true" />
+      <created>1770946030440</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1770946030440</updated>
+    </task>
+    <task id="LOCAL-00039" summary="export video to file">
+      <option name="closed" value="true" />
+      <created>1771033089267</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1771033089267</updated>
+    </task>
+    <task id="LOCAL-00040" summary="elipse filter">
+      <option name="closed" value="true" />
+      <created>1771037775524</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1771037775524</updated>
+    </task>
+    <task id="LOCAL-00041" summary="elipse filter move by mouse">
+      <option name="closed" value="true" />
+      <created>1771077392774</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1771077392774</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="editable scene list saved in jshn for each file" />
-    <MESSAGE value="scene list context menu" />
-    <MESSAGE value="in place editing" />
-    <MESSAGE value="pip files" />
-    <MESSAGE value="corret inline editing (only title)" />
-    <MESSAGE value="go in out nav" />
-    <MESSAGE value="crop in out mode" />
-    <MESSAGE value="make screenshots + toolbar" />
-    <MESSAGE value="add icons as emodji" />
-    <MESSAGE value="histogram" />
     <MESSAGE value="filter platform" />
     <MESSAGE value="filter manager and editor" />
     <MESSAGE value="bw and crop filter, base for crop overlay" />
@@ -369,7 +457,17 @@
     <MESSAGE value="using cuda version torch, float and bool type in filter_man" />
     <MESSAGE value="gpu used, update ranges" />
     <MESSAGE value="add segmentation model, show contur. new range extractor" />
-    <option name="LAST_COMMIT_MESSAGE" value="add segmentation model, show contur. new range extractor" />
+    <MESSAGE value="asinc scan for object detector" />
+    <MESSAGE value="stabilizer" />
+    <MESSAGE value="saw raw data only and lazy smoothing for stabiliser" />
+    <MESSAGE value="crop with resize and resize filter to target dims" />
+    <MESSAGE value="busted resize with offset and overlay" />
+    <MESSAGE value="ai face blur" />
+    <MESSAGE value="ai face blur with memory against face lost" />
+    <MESSAGE value="export video to file" />
+    <MESSAGE value="elipse filter" />
+    <MESSAGE value="elipse filter move by mouse" />
+    <option name="LAST_COMMIT_MESSAGE" value="elipse filter move by mouse" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

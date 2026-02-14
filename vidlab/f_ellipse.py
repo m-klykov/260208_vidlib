@@ -16,11 +16,12 @@ class FilterEllipse(FilterBase):
                 "opacity": 0.6
             }
         super().__init__(num, cache_dir, params)
-        self.name = "Highlight Ellipse"
+        self.name = "Ellipse"
         self._is_dragging = False
 
     def get_params_metadata(self):
         return {
+            "act_in": {"type": "in_out", "default": -1},  # Наш триггер для UI
             "x_pos": {"type": "float", "min": -1.0, "max": 1.0, "default": 0.0},
             "y_pos": {"type": "float", "min": -1.0, "max": 1.0, "default": 0.0},
             "diameter": {"type": "float", "min": 0.01, "max": 1.0, "default": 0.2},

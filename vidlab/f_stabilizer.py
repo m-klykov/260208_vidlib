@@ -24,6 +24,7 @@ class FilterStabilizer(FilterAsyncBase):
 
     def get_params_metadata(self):
         return {
+            "act_in": {"type": "in_out", "default": -1},  # Наш триггер для UI
             # Порог для смены сцены
             "min_features": {"type": "int", "min": 10, "max": 500, "default": 30},
             "auto_zoom": {"type": "bool", "default": False},

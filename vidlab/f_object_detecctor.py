@@ -36,6 +36,7 @@ class FilterObjectDetector(FilterAsyncBase):
 
     def get_params_metadata(self):
         return {
+            "act_in": {"type": "in_out", "default": -1},  # Наш триггер для UI
             "conf": {"type": "float", "min": 0.1, "max": 1.0, "default": 0.25},
             "show_labels": {"type": "bool", "default": True},
             # "use_cache": {"type": "bool", "default": True},

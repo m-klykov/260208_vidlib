@@ -77,6 +77,16 @@ class TimelineWidget(QWidget):
                 x = self._frame_to_x(frame)
                 painter.drawLine(int(x), 10, int(x), mid_y)
 
+        # писуем область применения фильтра
+        act_in = data.get("act_in", -1)
+        act_out = data.get("act_out", -1)
+        if act_in > -1:
+            # Рисуем под таймлайном тонкую яркую полоску
+            # (например, синюю или зеленую), показывающую зону жизни фильтра
+            x_start = self._frame_to_x(act_in)
+            x_end = self._frame_to_x(act_out)
+            painter.fillRect(x_start, rect.y(), x_end - x_start, 5, QColor(0, 0, 255, 80))
+
     def _draw_navigation_bottom(self, painter, rect, mid_y, start_f, end_f):
         in_f = self.controller.get_in_index()
         out_f = self.controller.get_out_index()

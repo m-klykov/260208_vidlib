@@ -76,6 +76,16 @@ class FilterBase(QObject):
         # 3. Уведомление системы
         # self.params_changed.emit()
 
+    def is_active_at(self, idx):
+        # Если параметров нет — фильтр работает везде
+        in_p = self.get_param("act_in", -1)
+        out_p = self.get_param("act_out", -1)
+
+        if in_p == -1:
+            return True
+
+        return in_p <= idx < out_p
+
     def get_params_metadata(self):
         """
         Возвращает описание параметров для построения UI.
@@ -101,7 +111,9 @@ class FilterBase(QObject):
         """Переопределяем, чтобы отдавать данные не из params, а из внутренних списков"""
         return {
             "ranges": self._analyzed_ranges,
-            "marks": self._detected_scenes
+            "marks": self._detected_scenes,
+            "act_in": self.get_param("act_in",-1),
+            "act_out": self.get_param("act_out",-1),
         }
 
     def handle_mouse_move(self, pos, rect):

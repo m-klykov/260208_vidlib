@@ -248,6 +248,43 @@ class FilterManagerWidget(QWidget):
 
             self.param_widgets[key].update({'widget': combo, 'label': None})
 
+        elif p_type == 'in_out':
+            # Создаем кнопки управления диапазоном
+            btn_in = QPushButton("[ In")
+            btn_in.clicked.connect(self._on_mark_in_pressed)
+
+            btn_out = QPushButton("Out ]")
+            btn_out.clicked.connect(self._on_mark_out_pressed)
+
+            btn_clear = QPushButton("Reset")
+            btn_clear.clicked.connect(self._on_clear_pressed)
+
+            # Стилизуем кнопки для компактности
+            for btn in [btn_in, btn_out, btn_clear]:
+                btn.setFixedWidth(60)
+                hbox.addWidget(btn)
+
+            # Лейбл, который будет обновляться методом _update_in_out_label
+            label = QLabel("---")
+            label.setStyleSheet("font-weight: bold; color: #2ecc71; margin-left: 8px;")
+
+            # Подключаем сигналы к твоим методам
+
+
+
+
+            hbox.addWidget(label)
+            hbox.addStretch()
+
+            # Регистрируем виджеты
+            self.param_widgets[key].update({
+                'widget': btn_in,
+                'label': label
+            })
+
+            # Сразу инициализируем текст лейбла текущими значениями
+            self._update_in_out_label()
+
         self.params_layout.addLayout(hbox)
 
     def _on_ui_param_changed(self, value, key):
@@ -296,6 +333,63 @@ class FilterManagerWidget(QWidget):
                     widget.setCurrentIndex(idx)
 
             widget.blockSignals(False)
+
+    def _on_mark_in_pressed(self):
+        if not self._current_filter_obj: return
+        filter = self._current_filter_obj
+
+        curr = self.controller.model.current_idx
+        old_out = filter.get_param("act_out",-1)
+
+        filter.set_param("act_in", curr)
+        # Если диапазон не был задан (-1), ставим конец в конец видео
+        if old_out <= curr:
+            filter.set_param("act_out", self.controller.model.get_max_index())
+
+        self._update_in_out_label()  # Обновит текст типа "120 - 500"
+        self.project.save_project()
+        self.controller.refresh_current_frame()
+
+    def _on_mark_out_pressed(self):
+        if not self._current_filter_obj: return
+        filter = self._current_filter_obj
+        curr = self.controller.model.current_idx
+        old_in = filter.get_param("act_in",-1)
+
+        filter.set_param("act_out", curr)
+        # Если начало не было задано, ставим его в 0 (или начало видео)
+        if old_in < 0 or old_in >= curr:
+            filter.set_param("act_in", 0)
+
+        self._update_in_out_label()  # Обновит текст типа "120 - 500"
+        self.project.save_project()
+        self.controller.refresh_current_frame()
+
+    def _on_clear_pressed(self):
+        if not self._current_filter_obj: return
+        filter = self._current_filter_obj
+
+        filter.set_param("act_in", -1)
+        filter.set_param("act_out", -1)
+        self._update_in_out_label()  # Обновит текст типа "120 - 500"
+        self.project.save_project()
+        self.controller.refresh_current_frame()
+
+    def _update_in_out_label(self):
+        if not self._current_filter_obj: return
+        filter = self._current_filter_obj
+
+        data = self.param_widgets.get("act_in")
+
+        if data and data['label']:
+            act_in = filter.get_param("act_in", -1)
+            act_out = filter.get_param("act_out", -1)
+            if act_in >= 0:
+                data['label'].setText(f"{act_in}-{act_out}")
+            else:
+                data['label'].setText("---")
+
+
 
     def _show_add_menu(self):
         menu = QMenu(self)

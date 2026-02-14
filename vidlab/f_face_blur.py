@@ -25,6 +25,7 @@ class FilterFaceBlur(FilterAsyncBase):
 
     def get_params_metadata(self):
         return {
+            "act_in": {"type": "in_out", "default": -1},  # Наш триггер для UI
             "conf": {"type": "float", "min": 0.1, "max": 1.0, "default": 0.3},
             "blur_size": {"type": "int", "min": 1, "max": 150, "default": 30},
             "pixelate": {"type": "bool", "default": False},

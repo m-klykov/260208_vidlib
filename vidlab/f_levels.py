@@ -15,6 +15,7 @@ class FilterLevels(FilterBase):
 
     def get_params_metadata(self):
         return {
+            "act_in": {"type": "in_out", "default": -1},  # Наш триггер для UI
             "black": {"type": "int", "min": 0, "max": 254, "default": 0},
             "white": {"type": "int", "min": 1, "max": 255, "default": 255}
         }

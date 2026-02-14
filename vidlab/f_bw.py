@@ -8,7 +8,10 @@ class FilterBW(FilterBase):
 
     def get_params_metadata(self):
         # Возвращаем пустой словарь — настроек нет
-        return {}
+        return {
+            "act_in": {"type": "in_out", "default": -1},  # Наш триггер для UI
+
+        }
 
     def process(self, frame, idx):
         # Конвертируем в градации серого

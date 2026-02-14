@@ -84,7 +84,7 @@ class VideoController(QObject):
         processed = raw_frame.copy()
         # Прогоняем через все включенные фильтры в порядке их следования в списке
         for f in self.project.filters:
-            if f.enabled:
+            if f.enabled and f.is_active_at(frame_idx):
                 processed = f.process(processed, frame_idx)
         return processed
 
@@ -141,8 +141,10 @@ class VideoController(QObject):
         """Просто возвращает данные для отрисовки от сфокусированного фильтра"""
         for f in self.project.filters:
             if f.focused:
-                return f.get_timeline_data()
-        return {"marks": [], "ranges": []}
+                data = f.get_timeline_data()
+                return data
+
+        return {"marks": [], "ranges": [], "act_in": -1, "act_out": -1}
 
     def get_active_marks(self):
         """отсортированные времена маркеров пользователя и ефекта"""
@@ -153,6 +155,12 @@ class VideoController(QObject):
         filter_data = self.get_active_filter_timeline_data()
 
         all_points.update(filter_data["marks"])
+
+        act_in = filter_data.get("act_in",-1)
+        act_out = filter_data.get("act_out",-1)
+        if act_in >= 0:
+            all_points.update([act_in, act_out])
+
 
         sorted_points = sorted(list(all_points))
 
