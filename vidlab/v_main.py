@@ -1,7 +1,7 @@
 import os
 
 from PySide6.QtGui import QAction, QShortcut, QKeySequence
-from PySide6.QtWidgets import QMainWindow, QDockWidget, QFileDialog, QLabel, QToolBar
+from PySide6.QtWidgets import QMainWindow, QDockWidget, QFileDialog, QLabel, QToolBar, QProgressDialog, QMessageBox
 from PySide6.QtCore import Qt, QTimer
 
 from .m_config import APP_NAME
@@ -102,7 +102,7 @@ class MainView(QMainWindow):
     def _create_menu(self):
         menu = self.menuBar()
         file_menu = menu.addMenu("Файл")
-        open_act = file_menu.addAction("📂 Открыть")
+        open_act = file_menu.addAction("📂 Открыть...")
         open_act.setShortcut("Ctrl+O")
         open_act.triggered.connect(self._open_file_dialog)
 
@@ -128,6 +128,10 @@ class MainView(QMainWindow):
         toggle_filter_man = self.filter_dock.toggleViewAction()
         toggle_filter_man.setText("✨ Фильтры")
         self.view_menu.addAction(toggle_filter_man)
+
+        open_act = file_menu.addAction("💾 Експорт видео...")
+        open_act.setShortcut("Ctrl+M")
+        open_act.triggered.connect(self._export_file_dialog)
 
     def _update_recent_files_menu(self):
         self.recent_menu.clear()
@@ -230,6 +234,29 @@ class MainView(QMainWindow):
         path, _ = QFileDialog.getOpenFileName(self, "Выбор видео")
         if path:
             self.controller.load_video(path)
+
+    def _export_file_dialog(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Export Video", "", "Video (*.mp4)")
+        if path:
+            # Создаем диалог прогресса
+            progress = QProgressDialog("Exporting...", "Cancel", 0, 100, self)
+            progress.setWindowModality(Qt.WindowModal)
+
+            def update_ui(val):
+                progress.setValue(val)
+                return not progress.wasCanceled()
+
+            # Запускаем экспорт
+            try:
+                success = self.controller.export_video(path, update_ui)
+                if success:
+                    # Можно вывести маленькое уведомление
+                    print("Экспорт успешно завершен")
+
+            except Exception as e:
+                QMessageBox.critical(self, "Ошибка", f"Не удалось экспортировать: {str(e)}")
+            finally:
+                progress.close()
 
     # --- СОХРАНЕНИЕ СОСТОЯНИЯ ---
 

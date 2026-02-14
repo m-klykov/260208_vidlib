@@ -6,6 +6,7 @@ from PySide6.QtGui import QDesktopServices, Qt
 from .m_project import VideoProjectModel
 from .m_project_ext import VideoProjectExtModel
 from .m_video import VideoModel
+from .m_video_export import VideoExport
 
 class VideoController(QObject):
     video_loaded = Signal()  # Сигнал без параметров, так как View сама возьмет данные из модели
@@ -310,4 +311,74 @@ class VideoController(QObject):
         folder = os.path.dirname(self.model.file_path)
         # Кроссплатформенный способ открыть папку в проводнике
         QDesktopServices.openUrl(QUrl.fromLocalFile(folder))
+
+    def export_video(self, output_path, progress_callback=None):
+        """
+        Метод экспорта видео в диапазоне In/Out.
+        progress_callback: функция, принимающая (int) процента,
+        возвращающая True для продолжения и False для отмены.
+        """
+        if not self.model.cap:
+            return False
+
+        # 1. Определяем диапазон и параметры
+        start_frame = self.get_in_index()
+        end_frame = self.get_out_index()
+        total_to_export = end_frame - start_frame + 1
+
+        if total_to_export <= 0:
+            return False
+
+        # 2. Определяем размер кадра (берем эталонный обработанный кадр)
+        # Это важно, так как фильтр Resize мог изменить разрешение оригинала
+        raw_sample = self.model.get_frame(start_frame)
+        if raw_sample is None: return False
+
+        curr_idx = self.model.get_current_index()
+
+        processed_sample = self.get_processed_frame(raw_sample, start_frame)
+        h, w = processed_sample.shape[:2]
+
+        # 3. Инициализируем экспортер
+        exporter = VideoExport(
+            output_path=output_path,
+            fps=self.model.fps,
+            size=(w, h)
+        )
+
+        self.stop()  # Останавливаем предпросмотр на время экспорта
+
+        try:
+            for i in range(total_to_export):
+                curr_idx = start_frame + i
+
+                # Читаем кадр напрямую из модели
+                frame = self.model.get_frame(curr_idx)
+                if frame is None:
+                    break
+
+                # Применяем фильтры
+                processed = self.get_processed_frame(frame, curr_idx)
+
+                # Записываем
+                exporter.write_frame(processed)
+
+                # 4. Обработка прогресса и отмены
+                if progress_callback and (i % 20 == 0 or i == total_to_export-1):
+                    percent = int((i + 1) / total_to_export * 100)
+                    # Если коллбек вернул False — прерываемся
+                    if not progress_callback(percent):
+                        exporter.cancel()
+                        return False
+
+            exporter.finish()
+            return True
+
+        except Exception as e:
+            print(f"Export Error: {e}")
+            exporter.cancel()
+            return False
+        finally:
+            # Возвращаем плеер на место In-point после завершения
+            self.seek(curr_idx)
 
