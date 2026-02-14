@@ -50,14 +50,13 @@ class VideoDisplay(QWidget):
     def mouseMoveEvent(self, event):
         target_rect = self._get_target_rect()
         # Контроллер спросит фильтр, какой курсор поставить
-        cursor = self.controller.handle_mouse_move(event.pos(), target_rect)
+        cursor = self.controller.handle_mouse_move(event.pos(), target_rect, event)
         self.setCursor(cursor)
         self.update()
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            target_rect = self._get_target_rect()
-            self.controller.handle_mouse_press(event.pos(), target_rect)
+        target_rect = self._get_target_rect()
+        self.controller.handle_mouse_press(event.pos(), target_rect, event)
 
     def mouseReleaseEvent(self, event):
-        self.controller.handle_mouse_release()
+        self.controller.handle_mouse_release(event)

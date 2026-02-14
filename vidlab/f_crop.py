@@ -113,7 +113,7 @@ class FilterCrop(FilterBase):
             curs = Qt.SizeHorCursor if is_x else Qt.SizeVerCursor
             return curs, True
 
-    def handle_mouse_press(self, pos, rect):
+    def handle_mouse_press(self, pos, rect, event):
         if self.active_side: self.is_dragging = True
 
     def handle_mouse_release(self):

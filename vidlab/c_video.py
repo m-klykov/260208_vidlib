@@ -168,7 +168,7 @@ class VideoController(QObject):
 
         return sorted_points
 
-    def handle_mouse_move(self, pos, target_rect):
+    def handle_mouse_move(self, pos, target_rect, event):
         # Ищем фильтр, который сейчас выбран (в фокусе)
         for f in self.project.filters:
             if f.focused:
@@ -176,6 +176,7 @@ class VideoController(QObject):
                 curs, params_changes = f.handle_mouse_move(pos, target_rect)
 
                 if params_changes:
+                    self.project.save_project()
                     self.refresh_current_frame()
                     self.filter_params_changed.emit()
 
@@ -183,15 +184,21 @@ class VideoController(QObject):
 
         return Qt.ArrowCursor
 
-    def handle_mouse_press(self, pos, rect):
+    def handle_mouse_press(self, pos, rect, event):
         # Ищем фильтр, который сейчас выбран (в фокусе)
         for f in self.project.filters:
             if f.focused:
                 # Передаем управление фильтру
-                f.handle_mouse_press(pos, rect)
+                params_changes = f.handle_mouse_press(pos, rect, event)
+
+                if params_changes:
+                    self.project.save_project()
+                    self.refresh_current_frame()
+                    self.filter_params_changed.emit()
+
                 break
 
-    def handle_mouse_release(self):
+    def handle_mouse_release(self, event):
         # Ищем фильтр, который сейчас выбран (в фокусе)
         for f in self.project.filters:
             if f.focused:

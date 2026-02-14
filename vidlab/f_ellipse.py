@@ -181,14 +181,30 @@ class FilterEllipse(FilterBase):
         rx, ry = max(1, geo["rx"]), max(1, geo["ry"])
         return (dx ** 2) / (rx ** 2) + (dy ** 2) / (ry ** 2) <= 1
 
-    def handle_mouse_press(self, pos, rect):
+    def handle_mouse_press(self, pos, rect, event):
         if not rect.contains(pos): return
+
+        button = event.button()
+
 
         w, h = rect.width(), rect.height()
         sx, sy = rect.left(), rect.top()
 
         # 1. Сначала проверяем нажатие на ключевые точки траектории (если путь включен)
         if self.get_param("show_path", False):
+
+            # Если нажата ПРАВАЯ кнопка и мы наведены на точку
+            if button == Qt.RightButton:
+                hovered_idx = getattr(self, '_hovered_keyframe_idx', None)
+                if hovered_idx is not None:
+                    # Удаляем ключи для позиции на этом кадре
+                    self.remove_keyframe(hovered_idx, ["x_pos", "y_pos"])
+                    self._hovered_keyframe_idx = None  # Сбрасываем наведение
+
+                    # Сообщаем системе, что нужно сохранить проект и перерисовать
+                    return True  # Сигнал "параметры изменились"
+                return False
+
             route_data = self.get_keyframes_data(["x_pos", "y_pos"])
             for f_idx, data in route_data.items():
                 px = sx + (data["x_pos"] + 1) / 2 * w
@@ -200,7 +216,8 @@ class FilterEllipse(FilterBase):
                     self._dragging_keyframe_idx = f_idx  # Запоминаем, какой кадр правим
                     self._drag_offset_x = pos.x() - px
                     self._drag_offset_y = pos.y() - py
-                    return
+                    return False
+
 
         # 2. Если в ключи не попали, проверяем нажатие на текущий эллипс (старая логика)
         if self._is_hovering_ellipse(pos, rect):
@@ -210,6 +227,8 @@ class FilterEllipse(FilterBase):
             geo = self._get_geometry(w, h)
             self._drag_offset_x = pos.x() - (sx + geo["cx"])
             self._drag_offset_y = pos.y() - (sy + geo["cy"])
+
+        return False
 
     def handle_mouse_move(self, pos, rect):
         if self._is_dragging:

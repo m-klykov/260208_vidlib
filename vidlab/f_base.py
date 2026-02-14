@@ -181,7 +181,7 @@ class FilterBase(QObject):
         """возвращает курсор и надо ли обновить значение параметров фильтра"""
         return Qt.ArrowCursor, False
 
-    def handle_mouse_press(self, pos, rect):
+    def handle_mouse_press(self, pos, rect, event):
         pass
 
     def handle_mouse_release(self):
@@ -221,3 +221,24 @@ class FilterBase(QObject):
         # Восстанавливаем состояние
         self.set_current_frame(original_frame)
         return result
+
+    def remove_keyframe(self, frame_idx, param_names=None):
+        """Удаляет ключи на указанном кадре"""
+        with QMutexLocker(self._lock):
+            keys_to_check = param_names if param_names else self._params.keys()
+            str_idx = str(frame_idx)
+            changed = False
+
+            for key in keys_to_check:
+                val = self._params.get(key)
+                if isinstance(val, dict) and val.get("is_animated"):
+                    # Проверяем, есть ли такой ключ и не единственный ли он
+                    if str_idx in val["keys"]:
+                        if len(val["keys"]) > 1:
+                            del val["keys"][str_idx]
+                            changed = True
+                        else:
+                            # Можно вывести предупреждение в консоль или статус-бар
+                            print(f"DEBUG: Cannot remove the last keyframe for {key}")
+
+            return changed
