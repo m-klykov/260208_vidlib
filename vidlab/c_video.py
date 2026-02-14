@@ -166,6 +166,7 @@ class VideoController(QObject):
                 curs, params_changes = f.handle_mouse_move(pos, target_rect)
 
                 if params_changes:
+                    self.refresh_current_frame()
                     self.filter_params_changed.emit()
 
                 return curs
