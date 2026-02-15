@@ -19,6 +19,7 @@ class FilterManagerWidget(QWidget):
 
         self.controller.scenes_updated.connect(self.refresh_list)
         self.controller.filter_params_changed.connect(self._update_ui_from_params)
+        self.controller.detection_failed.connect(self._on_detection_failed)
         # self.refresh_list()
 
     def _init_ui(self):
@@ -118,14 +119,19 @@ class FilterManagerWidget(QWidget):
         # 2. Подписываемся на изменения из фильтра (от мышки)
         # selected_filter.params_changed.connect(self._update_ui_from_params)
         if selected_filter.can_tracking():
+            hbox = QHBoxLayout()
+
             self.btn_track = QPushButton("🎯 Start Auto-Track")
             self.btn_track.setCheckable(True)
-
-            # Обработка нажатия
             self.btn_track.clicked.connect(self._on_track_clicked)
+            hbox.addWidget(self.btn_track)
 
-            # Добавляем в основной макет панели фильтра
-            self.params_layout.addWidget(self.btn_track)
+            self.btn_track_reset = QPushButton("Clear data")
+            self.btn_track_reset.setFixedWidth(100)
+            self.btn_track_reset.clicked.connect(self._on_track_reset_clicked)
+            hbox.addWidget(self.btn_track_reset)
+
+            self.params_layout.addLayout(hbox)
 
         # Устанавливаем фокус (для Overlay в будущем)
         for f in self.project.filters: f.focused = False
@@ -196,6 +202,27 @@ class FilterManagerWidget(QWidget):
             self.btn_track.setStyleSheet("")
             self.controller.project.save_project()
 
+        self.controller.refresh_current_frame()
+
+    def _on_track_reset_clicked(self):
+        if not self._current_filter_obj:
+            return
+
+        confirmed = self._ask_confirm(
+            "Удаление данных трекинга",
+            "Вы уверены, что хотите удалить все данные трекиннга?"
+        )
+
+        if not confirmed: return
+
+        self._current_filter_obj.reset_tracking()
+        self.btn_track.setChecked(False)
+        self.controller.refresh_current_frame()
+
+    def _on_detection_failed(self):
+        self.btn_track.setChecked(False)
+
+
     def _clear_sub_layout(self, layout):
         """Рекурсивно очищает вложенные лайауты"""
         while layout.count():
@@ -257,8 +284,6 @@ class FilterManagerWidget(QWidget):
 
                 hbox.addWidget(btn_anim)
                 self.param_widgets[key].update({'anim_btn': btn_anim})
-
-
 
         elif p_type == 'bool':
             checkbox = QCheckBox()

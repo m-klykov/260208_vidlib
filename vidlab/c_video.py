@@ -17,6 +17,7 @@ class VideoController(QObject):
     playing_changed = Signal(bool)  # True если играет, False если пауза
     cropped_mode_changed = Signal(bool)  # Сигнал для обновления UI
     filter_params_changed = Signal() # параметры филльтра изменены мышкой в видео окне
+    detection_failed = Signal() # детектироване остановилось, цель потеряна
 
     def __init__(self):
         super().__init__()
@@ -115,7 +116,8 @@ class VideoController(QObject):
                 else:
                     # Если трекер сбился, можно подать звуковой сигнал или остановить Play
                     self.stop()
-                    self.project.save_project()
+                    # self.project.save_project()
+                    self.detection_failed.emit()
                     print("Tracking lost")
 
             if f.enabled and f.is_active_at(frame_idx):

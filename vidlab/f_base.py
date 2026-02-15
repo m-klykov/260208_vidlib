@@ -18,20 +18,27 @@ class FilterBase(QObject):
         self.focused = False
         self._lock = QMutex()
 
+        self._prj_save_callback = None
+
         self.current_frame_idx = 0  # Устанавливается контроллером перед процессом
 
         # Временные списки для работы в памяти (не сериализуются автоматически)
         self._analyzed_ranges = []
         self._detected_scenes = []
 
-        self._tracking_active = False
-        self._tracker = None
         self._last_tracked_frame = -1
 
     def get_id(self):
         # Превращает "Scene Detector" в "scene_detector_1"
         clean_name = self.name.lower().replace(" ", "_")
         return f"{clean_name}_{self.num}"
+
+    def set_prj_save_callback(self,callback):
+        self._prj_save_callback = callback
+
+    def save_project(self):
+        if self._prj_save_callback is not None:
+            self._prj_save_callback()
 
     def set_current_frame(self, idx):
         """устанавливается из контроллера"""
@@ -256,11 +263,11 @@ class FilterBase(QObject):
         return False
 
     def is_tracking(self):
-        return self._tracking_active
+        return False
 
     def stop_tracker(self):
-        self._tracking_active = False
-        self._tracker = None
+        pass
+
 
     def update_tracker(self, frame, frame_idx):
         """
@@ -268,3 +275,7 @@ class FilterBase(QObject):
         Возвращает True, если точка создана, False — если трекинг потерян или прерван.
         """
         return False
+
+    def reset_tracking(self):
+        """Полный сброс трекинга для этого фильтра."""
+        return True

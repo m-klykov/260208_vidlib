@@ -274,6 +274,6 @@ class MainView(QMainWindow):
         if checked:
             self.hist_dock.show()
             # Сразу обновляем данные из self.last_frame
-            self.hist_widget.update_data()
+            # self.hist_widget.update_data()
         else:
             self.hist_dock.hide()

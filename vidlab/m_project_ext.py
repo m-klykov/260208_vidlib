@@ -61,6 +61,7 @@ class VideoProjectExtModel(VideoProjectModel):
             if f_class:
                 f_obj = f_class(cfg['num'], self.cache_dir, cfg['params'])
                 f_obj.enabled = cfg.get('enabled', True)
+                f_obj.set_prj_save_callback(self.save_project)
                 self.filters.append(f_obj)
 
     def add_filter(self, filter_name):
@@ -72,6 +73,8 @@ class VideoProjectExtModel(VideoProjectModel):
         next_num = max(existing_nums, default=0) + 1
 
         new_filter = f_class(next_num, self.cache_dir)
+        new_filter.set_prj_save_callback(self.save_project)
+
         self.filters.append(new_filter)
         self.save_project()
 

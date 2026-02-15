@@ -4,18 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="elipse filter move by mouse">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="elipse ai tracking">
+      <change afterPath="$PROJECT_DIR$/vidlab/m_track_man.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vidlab/m_track_storage.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_bw.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_bw.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_ellipse.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_ellipse.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_face_blur.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_face_blur.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_levels.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_levels.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_object_detecctor.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_object_detecctor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_stabilizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_stabilizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/v_filter_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_timeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_timeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -438,16 +436,58 @@
       <option name="project" value="LOCAL" />
       <updated>1771077392774</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="mark in/out for filtars">
+      <option name="closed" value="true" />
+      <created>1771082996057</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1771082996057</updated>
+    </task>
+    <task id="LOCAL-00043" summary="crop refactor">
+      <option name="closed" value="true" />
+      <created>1771085588820</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1771085588820</updated>
+    </task>
+    <task id="LOCAL-00044" summary="filter param animation">
+      <option name="closed" value="true" />
+      <created>1771091478475</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1771091478475</updated>
+    </task>
+    <task id="LOCAL-00045" summary="show and edit traectory">
+      <option name="closed" value="true" />
+      <created>1771095993289</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1771095993289</updated>
+    </task>
+    <task id="LOCAL-00046" summary="rіght mouse delete points">
+      <option name="closed" value="true" />
+      <created>1771102896239</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1771102896239</updated>
+    </task>
+    <task id="LOCAL-00047" summary="elipse ai tracking">
+      <option name="closed" value="true" />
+      <created>1771122555864</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1771122555864</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="filter platform" />
-    <MESSAGE value="filter manager and editor" />
-    <MESSAGE value="bw and crop filter, base for crop overlay" />
-    <MESSAGE value="worket crop overley mouse editing" />
-    <MESSAGE value="timeline with markers and filter data" />
-    <MESSAGE value="scene detector base" />
     <MESSAGE value="use filter params setter and getter" />
     <MESSAGE value="asinc scene detector mehanik" />
     <MESSAGE value="real scene detector, saved to cash folder" />
@@ -467,7 +507,13 @@
     <MESSAGE value="export video to file" />
     <MESSAGE value="elipse filter" />
     <MESSAGE value="elipse filter move by mouse" />
-    <option name="LAST_COMMIT_MESSAGE" value="elipse filter move by mouse" />
+    <MESSAGE value="mark in/out for filtars" />
+    <MESSAGE value="crop refactor" />
+    <MESSAGE value="filter param animation" />
+    <MESSAGE value="show and edit traectory" />
+    <MESSAGE value="rіght mouse delete points" />
+    <MESSAGE value="elipse ai tracking" />
+    <option name="LAST_COMMIT_MESSAGE" value="elipse ai tracking" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
