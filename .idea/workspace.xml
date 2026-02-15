@@ -4,16 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="elipse ai tracking">
-      <change afterPath="$PROJECT_DIR$/vidlab/m_track_man.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/vidlab/m_track_storage.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="trackinh ro bin file and two way auto/manual tracjing">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/c_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/c_video.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_ellipse.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_ellipse.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_filter_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_filter_man.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/v_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/v_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_track_man.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_track_man.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -484,11 +479,18 @@
       <option name="project" value="LOCAL" />
       <updated>1771122555864</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="trackinh ro bin file and two way auto/manual tracjing">
+      <option name="closed" value="true" />
+      <created>1771187885816</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1771187885816</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="use filter params setter and getter" />
     <MESSAGE value="asinc scene detector mehanik" />
     <MESSAGE value="real scene detector, saved to cash folder" />
     <MESSAGE value="ctrl arrow for jump to mrkers" />
@@ -513,7 +515,8 @@
     <MESSAGE value="show and edit traectory" />
     <MESSAGE value="rіght mouse delete points" />
     <MESSAGE value="elipse ai tracking" />
-    <option name="LAST_COMMIT_MESSAGE" value="elipse ai tracking" />
+    <MESSAGE value="trackinh ro bin file and two way auto/manual tracjing" />
+    <option name="LAST_COMMIT_MESSAGE" value="trackinh ro bin file and two way auto/manual tracjing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

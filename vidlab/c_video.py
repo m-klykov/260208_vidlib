@@ -251,7 +251,7 @@ class VideoController(QObject):
     def step_backward(self):
         self.stop()
         curr = self.model.get_current_index()
-        self.seek(max(0, curr - 2)) # -2 т.к. после чтения индекс уже смещен вперед
+        self.seek(max(0, curr - 1)) # -2 т.к. после чтения индекс уже смещен вперед
 
     def to_start(self):
         self.seek(self.model.get_min_index())

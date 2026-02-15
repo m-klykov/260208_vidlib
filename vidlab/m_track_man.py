@@ -173,3 +173,32 @@ class TrackerManager:
 
         # Если не трекаем — берем запеченное из файла
         return self.storage.get_delta(frame_idx)
+
+    def rebake_segment(self, start_frame, end_frame, start_manual_pos, end_manual_pos):
+        """
+        Пересчитывает дельты на участке так, чтобы они соответствовали новой линии между ключами.
+        Гарантирует, что в start_frame и end_frame дельта останется (или станет) 0.
+        """
+        num_frames = end_frame - start_frame + 1
+        if num_frames < 2: return
+
+        # 1. Достаем всё, что было в файле на этом участке
+        old_deltas = []
+        for f in range(start_frame, end_frame + 1):
+            old_deltas.append(self.storage.get_delta(f))
+        old_deltas = np.array(old_deltas)
+
+        # 2. Нам нужно убрать дрейф в начале и в конце.
+        # В начале (t=0) дрейф = old_deltas[0]
+        # В конце (t=1) дрейф = old_deltas[-1]
+        t_steps = np.linspace(0, 1, num_frames)
+
+        # Линейная интерполяция дрейфа, который нужно вычесть
+        # d_start * (1-t) + d_end * t
+        drift_correction = np.outer(1 - t_steps, old_deltas[0]) + np.outer(t_steps, old_deltas[-1])
+
+        # 3. Новые дельты = старые дельты - коррекция дрейфа
+        new_deltas = old_deltas - drift_correction
+
+        # 4. Пишем обратно
+        self.storage.write_block(start_frame, new_deltas)

@@ -333,44 +333,51 @@ class FilterEllipse(FilterBase):
         """Инициализация трекера через TrackerManager"""
         h, w = frame.shape[:2]
 
-        # 1. Получаем текущую экранную позицию (с учетом старых треков и ключей)
-        # Это важно, чтобы начать трекинг именно оттуда, где сейчас находится эллипс
+        # 1. Получаем визуальную позицию и ключи
         geo = self._get_geometry(w, h)
 
-        # ROI для OpenCV (центрируем по текущему положению)
-        roi = (
-            int(geo["cx"] - geo["rx"]),
-            int(geo["cy"] - geo["ry"]),
-            int(geo["rx"] * 2),
-            int(geo["ry"] * 2)
-        )
+        visual_pos = ((geo["cx"] / w) * 2 - 1, (geo["cy"] / h) * 2 - 1)
 
-        # 2. Подготавливаем данные для менеджера
-        # Текущая позиция в формате [-1, 1]
-        current_pos = (self.get_param("x_pos"), self.get_param("y_pos"))
-
-        # Собираем все будущие ручные ключи, чтобы менеджер знал, где делать "запекание"
         all_keys = self.get_keyframes_data(["x_pos", "y_pos"])
-        future_keys = []
-        for f_idx, val in all_keys.items():
-            if f_idx > frame_idx:
-                future_keys.append((f_idx, val["x_pos"], val["y_pos"]))
+        sorted_frames = sorted(all_keys.keys())
+
+        # 2. Ищем предыдущий ключ для перезапекания
+        # 2. Находим соседей (предыдущий и следующий ключи)
+        prev_idx = next((f for f in reversed(sorted_frames) if f < frame_idx), None)
+        next_idx = next((f for f in sorted_frames if f > frame_idx), None)
+
+        # 3. Устанавливаем новый ключ (схлопываем дельту в значение ключа)
+        self._set_manual_key_callback(frame_idx, visual_pos[0], visual_pos[1])
+
+        # 4. СВАРКА СЛЕВА (если есть ключ слева)
+        if prev_idx is not None:
+            prev_pos = (all_keys[prev_idx]["x_pos"], all_keys[prev_idx]["y_pos"])
+            self.tracker_mgr.rebake_segment(prev_idx, frame_idx, prev_pos, visual_pos)
+
+        # 5. СВАРКА СПРАВА (если есть ключ справа)
+        # Это защищает нас от разрыва, если мы отменим трекинг или он сорвется
+        if next_idx is not None:
+            next_pos = (all_keys[next_idx]["x_pos"], all_keys[next_idx]["y_pos"])
+            self.tracker_mgr.rebake_segment(frame_idx, next_idx, visual_pos, next_pos)
+
+        # 6. И только теперь стартуем сам трекер
+        roi = (int(geo["cx"] - geo["rx"]),
+               int(geo["cy"] - geo["ry"]),
+               int(geo["rx"] * 2),
+               int(geo["ry"] * 2))
+
+        future_keys = [(f, v["x_pos"], v["y_pos"]) for f, v in all_keys.items() if f > frame_idx]
 
         # 3. Запускаем менеджер
         success = self.tracker_mgr.init_tracker(
             frame,
             frame_idx,
             roi,
-            current_pos,
+            visual_pos,
             future_keys
         )
 
         if success:
-            # Если мы начали трекинг не на существующем ключе,
-            # принудительно создаем ручной ключ в точке старта.
-            # Это гарантирует, что Manual_Path начнется там же, где и Tracker_Path.
-            if frame_idx not in all_keys:
-                self._set_manual_key_callback(frame_idx, current_pos[0], current_pos[1])
 
             self._last_tracked_frame = frame_idx
 
