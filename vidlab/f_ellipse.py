@@ -1,3 +1,5 @@
+
+import random
 from PySide6.QtCore import Qt, QPoint
 import cv2
 import numpy as np
@@ -20,6 +22,7 @@ class FilterEllipse(FilterBase):
         super().__init__(num, cache_dir, params)
         self.name = "Ellipse"
         self._is_dragging = False
+
 
     def get_params_metadata(self):
         return {
@@ -289,10 +292,145 @@ class FilterEllipse(FilterBase):
 
         # Добавляем все ключевые кадры как метки
         anim_keys = self.get_keyframe_indices()
-        data["marks"].extend(anim_keys)
+        data["marks"] = list(anim_keys)
 
         return data
 
+    def init_tracker(self, frame, frame_idx):
+        """Инициализация трекера по текущему эллипсу"""
+        h, w = frame.shape[:2]
+        geo = self._get_geometry(w, h)
+
+        # ROI в формате (x, y, width, height)
+        roi = (
+            int(geo["cx"] - geo["rx"]),
+            int(geo["cy"] - geo["ry"]),
+            int(geo["rx"] * 2),
+            int(geo["ry"] * 2)
+        )
+
+        try:
+            # Создаем трекер (CSRT — самый точный для лиц и мелких объектов)
+            self._tracker = cv2.TrackerCSRT_create()
+            # print(F"Tracker is {type(self._tracker)}")
+            self._tracker.init(frame, roi)
+            # print(F"TrackerCSRT init is {success}")
+
+            self._tracking_active = True
+            self._last_tracked_frame = frame_idx
+            # Важно: включаем анимацию для параметров, если она еще не включена
+            self.set_animation("x_pos", True)
+            self.set_animation("y_pos", True)
+
+            return self._tracking_active
+
+        except Exception as e:
+            print(f"Tracker init failed: {e}")
+            self._tracking_active = False
+            return False
+
+
+    def update_tracker(self, frame, frame_idx):
+        """
+        Пытается обновить позицию.
+        Возвращает True, если точка создана, False — если трекинг потерян или прерван.
+        """
+        if not self._tracking_active or self._tracker is None:
+            return False
+
+        if self._last_tracked_frame == frame_idx:
+            """тот же кадр, продолжаем ждать"""
+            return True
+
+        # Проверка на "слишком большой шаг" (например, больше 5 кадров)
+        # Если пользователь прыгнул через полфильма — трекер не поймет контекст
+        if frame_idx <= self._last_tracked_frame or frame_idx > self._last_tracked_frame + 5:
+            self.stop_tracker()
+            return False
+
+        success, box = self._tracker.update(frame)
+
+        if success:
+
+            # Настраиваемый шаг (например, ставим ключ раз в 5 кадров)
+            # Но если это первый кадр после инициализации или паузы — ставим обязательно
+            stride = 1
+            is_step = (frame_idx % stride == 0)
+
+            if is_step:
+                x, y, w, h = box
+                img_h, img_w = frame.shape[:2]
+
+                # Перевод в наши координаты [-1, 1]
+                new_x = ((x + w / 2) / img_w) * 2 - 1
+                new_y = ((y + h / 2) / img_h) * 2 - 1
+
+                # Сохраняем текущий кадр фильтра для корректной записи ключа
+                old_idx = self.current_frame_idx
+                self.set_current_frame(frame_idx)
+
+                self.set_param("x_pos", round(new_x, 2))
+                self.set_param("y_pos", round(new_y, 2))
+
+                self.optimize_trajectory_stochastic(["x_pos", "y_pos"])
+
+                self.set_current_frame(old_idx)
+
+
+
+            self._last_tracked_frame = frame_idx
+            return True
+        else:
+            self.stop_tracker()
+            return False
+
+    def can_tracking(self):
+        """доступен ли трекер"""
+        return True
+
+    def optimize_trajectory_stochastic(self, param_names, iterations=10, epsilon=0.003):
+        """
+        Стохастическая оптимизация: выбирает случайную точку и проверяет,
+        насколько она отклоняется от линейной интерполяции между соседями по времени.
+        """
+        total_removed = 0
+
+        for _ in range(iterations):
+            # Каждый раз берем свежие индексы, так как список меняется при удалении
+            indices = self.get_keyframe_indices(param_names)
+            if len(indices) < 3:
+                break
+
+            # Выбираем случайную точку (исключая первую и последнюю)
+            idx_in_list = random.randint(1, len(indices) - 2)
+
+            f1 = indices[idx_in_list - 1]
+            f2 = indices[idx_in_list]
+            f3 = indices[idx_in_list + 1]
+
+            # Получаем данные для этих трех кадров
+            data = self.get_keyframes_data(param_names)
+            p1 = (data[f1]["x_pos"], data[f1]["y_pos"])
+            p2 = (data[f2]["x_pos"], data[f2]["y_pos"])  # Реальная точка
+            p3 = (data[f3]["x_pos"], data[f3]["y_pos"])
+
+            # 1. Вычисляем временную пропорцию (где должна быть точка f2 между f1 и f3)
+            # Если f2 ровно посередине между f1 и f3, то ratio = 0.5
+            ratio = (f2 - f1) / (f3 - f1)
+
+            # 2. Вычисляем ПРЕДПОЛАГАЕМЫЕ координаты (линейная интерполяция)
+            expected_x = p1[0] + (p3[0] - p1[0]) * ratio
+            expected_y = p1[1] + (p3[1] - p1[1]) * ratio
+
+            # 3. Измеряем расстояние между реальной точкой и ожидаемой
+            distance = ((p2[0] - expected_x) ** 2 + (p2[1] - expected_y) ** 2) ** 0.5
+
+            # 4. Если отклонение мизерное — точка лишняя
+            if distance < epsilon:
+                if self.remove_keyframe(f2, param_names):
+                    total_removed += 1
+
+        return total_removed
 
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)

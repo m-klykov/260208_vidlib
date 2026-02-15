@@ -10,12 +10,12 @@ name = "pytorch"
 
 [packages]
 pyside6 = "*"
-opencv-python = "*"
 numpy = "*"
 ultralytics = "*"
 torch = {version = "*", index = "pytorch"}
 torchvision = {version = "*", index = "pytorch"}
 torchaudio = {version = "*", index = "pytorch"}
+opencv-contrib-python = "*"
 
 [dev-packages]
 

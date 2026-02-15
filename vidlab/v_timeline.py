@@ -72,7 +72,9 @@ class TimelineWidget(QWidget):
 
         # Рисуем метки (Marks) сверху - высокие оранжевые линии
         painter.setPen(QPen(QColor("orange"), 2))
-        for frame in data.get("marks", []):
+        marks = data.get("marks", [])
+        marks = marks[-50:]
+        for frame in marks:
             if start_f <= frame <= end_f:
                 x = self._frame_to_x(frame)
                 painter.drawLine(int(x), 10, int(x), mid_y)

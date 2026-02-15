@@ -24,6 +24,10 @@ class FilterBase(QObject):
         self._analyzed_ranges = []
         self._detected_scenes = []
 
+        self._tracking_active = False
+        self._tracker = None
+        self._last_tracked_frame = -1
+
     def get_id(self):
         # Превращает "Scene Detector" в "scene_detector_1"
         clean_name = self.name.lower().replace(" ", "_")
@@ -242,3 +246,25 @@ class FilterBase(QObject):
                             print(f"DEBUG: Cannot remove the last keyframe for {key}")
 
             return changed
+
+    def can_tracking(self):
+        """доступен ли трекер"""
+        return False
+
+    def init_tracker(self, frame, frame_idx):
+        """Инициализация трекера по текущему эллипсу"""
+        return False
+
+    def is_tracking(self):
+        return self._tracking_active
+
+    def stop_tracker(self):
+        self._tracking_active = False
+        self._tracker = None
+
+    def update_tracker(self, frame, frame_idx):
+        """
+        Пытается обновить позицию.
+        Возвращает True, если точка создана, False — если трекинг потерян или прерван.
+        """
+        return False

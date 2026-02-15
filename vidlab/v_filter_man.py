@@ -117,6 +117,15 @@ class FilterManagerWidget(QWidget):
 
         # 2. Подписываемся на изменения из фильтра (от мышки)
         # selected_filter.params_changed.connect(self._update_ui_from_params)
+        if selected_filter.can_tracking():
+            self.btn_track = QPushButton("🎯 Start Auto-Track")
+            self.btn_track.setCheckable(True)
+
+            # Обработка нажатия
+            self.btn_track.clicked.connect(self._on_track_clicked)
+
+            # Добавляем в основной макет панели фильтра
+            self.params_layout.addWidget(self.btn_track)
 
         # Устанавливаем фокус (для Overlay в будущем)
         for f in self.project.filters: f.focused = False
@@ -169,6 +178,23 @@ class FilterManagerWidget(QWidget):
             # Перед запуском прокидываем путь к видео из модели
             f.video_path = self.controller.model.file_path
             f.start_analysis()
+
+    def _on_track_clicked(self, checked):
+        if checked:
+            # Пытаемся запустить через контроллер
+            success = self.controller.start_track_focused()
+            if not success:
+                self.btn_track.setChecked(False)
+                return
+            self.btn_track.setText("🛑 Stop Tracking")
+            self.btn_track.setStyleSheet("background-color: #ffaaaa;")
+        else:
+            # Останавливаем
+            self._current_filter_obj.stop_tracker()
+            self.controller.stop()  # Предположим, вы назвали его так
+            self.btn_track.setText("🎯 Start Auto-Track")
+            self.btn_track.setStyleSheet("")
+            self.controller.project.save_project()
 
     def _clear_sub_layout(self, layout):
         """Рекурсивно очищает вложенные лайауты"""

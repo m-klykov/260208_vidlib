@@ -79,11 +79,45 @@ class VideoController(QObject):
         self.timer.stop()
         self.playing_changed.emit(False)
 
-    # Пример логики в контроллере/плеере
+    def start_track_focused(self):
+        """запускаем трекер в текущем фильтре"""
+        processed = self.model.last_frame.copy()
+        if processed is None: return False
+
+        frame_idx = self.model.get_current_index()
+
+        # Прогоняем через все включенные фильтры в порядке их следования в списке
+        for f in self.project.filters:
+            if f.focused:
+                if f.is_tracking():
+                    f.stop_tracker()
+
+                # bybwbfkbpbhetv nhtrth
+                return f.init_tracker(processed, frame_idx)
+
+            if f.enabled and f.is_active_at(frame_idx):
+                f.set_current_frame(frame_idx)  # УВЕДОМЛЯЕМ ФИЛЬТР О КАДРЕ
+                processed = f.process(processed, frame_idx)
+
+        return False
+
+
+        # Пример логики в контроллере/плеере
     def get_processed_frame(self, raw_frame, frame_idx):
         processed = raw_frame.copy()
         # Прогоняем через все включенные фильтры в порядке их следования в списке
         for f in self.project.filters:
+            if f.focused and f.is_tracking():
+                # Если трекинг прошел успешно, UI обновит путь (траекторию) автоматически
+                if f.update_tracker(processed, frame_idx):
+                    # self.project.save_project()
+                    self.filter_params_changed.emit()
+                else:
+                    # Если трекер сбился, можно подать звуковой сигнал или остановить Play
+                    self.stop()
+                    self.project.save_project()
+                    print("Tracking lost")
+
             if f.enabled and f.is_active_at(frame_idx):
                 f.set_current_frame(frame_idx)  # УВЕДОМЛЯЕМ ФИЛЬТР О КАДРЕ
                 processed = f.process(processed, frame_idx)
