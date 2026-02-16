@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="fix trackrescan">
-      <change afterPath="$PROJECT_DIR$/vidlab/f_cam_tracker2d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="camrea tracker">
+      <change afterPath="$PROJECT_DIR$/vidlab/f_motion_det.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,14 +100,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00001" summary="init">
-      <option name="closed" value="true" />
-      <created>1770556320878</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1770556320878</updated>
     </task>
     <task id="LOCAL-00002" summary="base functional video playback">
       <option name="closed" value="true" />
@@ -494,11 +485,18 @@
       <option name="project" value="LOCAL" />
       <updated>1771193229841</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="camrea tracker">
+      <option name="closed" value="true" />
+      <created>1771278461342</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1771278461342</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="real scene detector, saved to cash folder" />
     <MESSAGE value="ctrl arrow for jump to mrkers" />
     <MESSAGE value="move save methods in asinc_base, fix controller.to_end, min_scene_dur in scene decector" />
     <MESSAGE value="ai obj detector" />
@@ -523,7 +521,8 @@
     <MESSAGE value="elipse ai tracking" />
     <MESSAGE value="trackinh ro bin file and two way auto/manual tracjing" />
     <MESSAGE value="fix trackrescan" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix trackrescan" />
+    <MESSAGE value="camrea tracker" />
+    <option name="LAST_COMMIT_MESSAGE" value="camrea tracker" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
