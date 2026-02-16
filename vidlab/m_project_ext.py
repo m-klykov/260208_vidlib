@@ -3,6 +3,7 @@ import os
 
 from .f_base import FilterBase
 from .f_bw import FilterBW
+from .f_cam_tracker2d import FilterCameraTracker2D
 from .f_crop import FilterCrop
 from .f_ellipse import FilterEllipse
 from .f_face_blur import FilterFaceBlur
@@ -30,6 +31,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "AI Object Detector": FilterObjectDetector,
             "AI Face Blur": FilterFaceBlur,
             "Stabilizer": FilterStabilizer,
+            "CameraTracker2D": FilterCameraTracker2D,
         }
 
     def load_project(self, video_path):
