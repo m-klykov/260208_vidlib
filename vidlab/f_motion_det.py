@@ -18,8 +18,9 @@ class FilterMotionDetector(FilterBase):
 
         # Память для хранения истории фичей
         self.prev_gray = None
-        self.prev_pts = None
+        self.pts_data = []  # Список словарей: {'pt': [x,y], 'age': int}
         self.prev_idx = -1
+        self.max_age = 100  # Для нормализации цвета (например, 100 кадров - максимум синевы)
 
     def get_params_metadata(self):
         return {
@@ -32,31 +33,50 @@ class FilterMotionDetector(FilterBase):
 
     def analyze_frame(self, frame, idx, params):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        h, w = gray.shape
         result = {
-            "matched_pts": [],
-            "new_pts": [],
-            "lost_pts": []
+            "tracks": [],  # (old_pt, new_pt, age)
+            "born_pts": [],  # [x, y]
+            "dead_pts": []  # [x, y]
         }
 
-        # --- ШАГ 1: ТРЕКИНГ СУЩЕСТВУЮЩИХ ТОЧЕК ---
-        active_pts_after_flow = []
-        if self.prev_gray is not None and self.prev_pts is not None:
-            curr_pts, status, _ = cv2.calcOpticalFlowPyrLK(
-                self.prev_gray, gray, self.prev_pts, None,
+        # 1. ТРЕКИНГ СУЩЕСТВУЮЩИХ (Живые и Умершие)
+        if self.prev_gray is not None and len(self.pts_data) > 0:
+            prev_h, prev_w = self.prev_gray.shape
+            if h != prev_h or w != prev_w:
+                self.prev_gray = None
+                self.pts_data = []  # Очищаем старые точки, они больше не валидны
+                return result
+
+
+            # Подготавливаем массив точек для OpenCV
+            p0 = np.array([d['pt'] for d in self.pts_data], dtype=np.float32).reshape(-1, 1, 2)
+
+            # Ищем, куда они уехали
+            p1, status, _ = cv2.calcOpticalFlowPyrLK(
+                self.prev_gray, gray, p0, None,
                 winSize=(21, 21), maxLevel=3
             )
 
-            for i, st in enumerate(status):
-                p_old = self.prev_pts[i].ravel()
-                if st == 1:
-                    p_new = curr_pts[i].ravel()
-                    result["matched_pts"].append((p_old, p_new))
-                    active_pts_after_flow.append(p_new)
-                else:
-                    result["lost_pts"].append(p_old)
+            new_pts_data = []
+            if p1 is not None and status is not None:
+                status = status.flatten()
+                for i, st in enumerate(status):
+                    old_coord = self.pts_data[i]['pt']
+                    if st == 1:
+                        new_coord = p1[i].ravel()
+                        new_age = self.pts_data[i]['age'] + 1
+                        new_pts_data.append({'pt': new_coord, 'age': new_age})
+                        result["tracks"].append((old_coord, new_coord, new_age))
+                    else:
+                        # Точка не нашлась на новом кадре - СМЕРТЬ
+                        result["dead_pts"].append(old_coord)
 
-        # --- ШАГ 2: ПОИСК КАНДИДАТОВ В НОВЫЕ ТОЧКИ ---
-        raw_new_features = cv2.goodFeaturesToTrack(
+            self.pts_data = new_pts_data
+
+        # 2. ДОСЕВ НОВЫХ (Рождение)
+        # Используем параметры из твоего UI
+        new_features = cv2.goodFeaturesToTrack(
             gray,
             maxCorners=params["max_corners"],
             qualityLevel=params["quality_level"],
@@ -64,34 +84,24 @@ class FilterMotionDetector(FilterBase):
             blockSize=params["block_size"]
         )
 
-        # --- ШАГ 3: ФИЛЬТРАЦИЯ И ПОПОЛНЕНИЕ ---
-        # Мы добавляем новые точки только там, где "пусто"
-        final_next_pts = [p for p in active_pts_after_flow]
+        if new_features is not None:
+            new_coords = new_features.reshape(-1, 2)
+            # Берем текущие координаты, чтобы не сеять вплотную к живым
+            current_coords = np.array([d['pt'] for d in self.pts_data]) if self.pts_data else np.array([])
 
-        if raw_new_features is not None:
-            for feat in raw_new_features:
-                new_p = feat.ravel()
-
-                # Проверяем, нет ли уже живой точки рядом с этим кандидатом
-                is_too_close = False
-                if len(final_next_pts) > 0:
-                    # Считаем расстояния до всех существующих точек
-                    dists = np.linalg.norm(np.array(final_next_pts) - new_p, axis=1)
+            for nc in new_coords:
+                is_far = True
+                if current_coords.size > 0:
+                    # Простая проверка дистанции
+                    dists = np.linalg.norm(current_coords - nc, axis=1)
                     if np.min(dists) < params["min_distance"]:
-                        is_too_close = True
+                        is_far = False
 
-                if not is_too_close:
-                    final_next_pts.append(new_p)
-                    result["new_pts"].append(new_p)
+                if is_far:
+                    self.pts_data.append({'pt': nc, 'age': 0})
+                    result["born_pts"].append(nc)
 
-        # --- ШАГ 4: ОБНОВЛЕНИЕ ПАМЯТИ ---
         self.prev_gray = gray.copy()
-        if len(final_next_pts) > 0:
-            self.prev_pts = np.array(final_next_pts, dtype=np.float32).reshape(-1, 1, 2)
-        else:
-            self.prev_pts = None
-
-        self.prev_idx = idx
         return result
 
     def process(self, frame, idx):
@@ -103,24 +113,23 @@ class FilterMotionDetector(FilterBase):
             "block_size": self.get_param("block_size")
         }
 
-        # Вызываем наш анализатор (экземпляр MotionAnalyzer должен быть в self)
         data = self.analyze_frame(frame, idx, params)
 
-        # ОТРИСОВКА
+        # 1. Рисуем "Трупы" (Красные крестики)
+        # Они вспыхнут на один кадр в месте, где точка потерялась
+        for p in data["dead_pts"]:
+            x, y = int(p[0]), int(p[1])
+            cv2.drawMarker(frame, (x, y), (0, 0, 255), cv2.MARKER_TILTED_CROSS, 7, 1)
 
-        # 1. Рисуем векторы движения (желтые линии)
-        for p_old, p_new in data["matched_pts"]:
-            p1 = (int(p_old[0]), int(p_old[1]))
-            p2 = (int(p_new[0]), int(p_new[1]))
-            cv2.line(frame, p1, p2, (0, 255, 255), 1, cv2.LINE_AA)
-            cv2.circle(frame, p2, 2, (0, 255, 255), -1)
+        # 2. Рисуем "Новорожденных" (Белые пульсирующие точки)
+        for p in data["born_pts"]:
+            cv2.circle(frame, (int(p[0]), int(p[1])), 5, (255, 255, 255), 1)
 
-        # 2. Рисуем потерянные точки (красные)
-        for p in data["lost_pts"]:
-            cv2.circle(frame, (int(p[0]), int(p[1])), 3, (0, 0, 255), 1)
-
-        # 3. Рисуем новые найденные точки (зеленые)
-        for p in data["new_pts"]:
-            cv2.circle(frame, (int(p[0]), int(p[1])), 2, (0, 255, 0), -1)
+        # 3. Рисуем "Живых" (Градиент Желтый -> Синий)
+        for p_old, p_new, age in data["tracks"]:
+            t = min(age / 50, 1.0)
+            color = (int(255 * t), int(255 * (1 - t)), int(255 * (1 - t)))
+            cv2.line(frame, (int(p_old[0]), int(p_old[1])), (int(p_new[0]), int(p_new[1])), color, 1)
+            cv2.circle(frame, (int(p_new[0]), int(p_new[1])), 2, color, -1)
 
         return frame

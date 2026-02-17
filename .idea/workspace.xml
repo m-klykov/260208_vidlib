@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="modion det base">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="modion det and cam tracker with respawn fitures">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_cam_tracker2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_cam_tracker2d.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_motion_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_motion_det.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,14 +100,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00003" summary="add scene list widget, last frame buff">
-      <option name="closed" value="true" />
-      <created>1770564295717</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1770564295717</updated>
     </task>
     <task id="LOCAL-00004" summary="add cur and total time">
       <option name="closed" value="true" />
@@ -494,11 +485,18 @@
       <option name="project" value="LOCAL" />
       <updated>1771279361691</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="modion det and cam tracker with respawn fitures">
+      <option name="closed" value="true" />
+      <created>1771290849370</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1771290849370</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="move save methods in asinc_base, fix controller.to_end, min_scene_dur in scene decector" />
     <MESSAGE value="ai obj detector" />
     <MESSAGE value="using cuda version torch, float and bool type in filter_man" />
     <MESSAGE value="gpu used, update ranges" />
@@ -523,7 +521,8 @@
     <MESSAGE value="fix trackrescan" />
     <MESSAGE value="camrea tracker" />
     <MESSAGE value="modion det base" />
-    <option name="LAST_COMMIT_MESSAGE" value="modion det base" />
+    <MESSAGE value="modion det and cam tracker with respawn fitures" />
+    <option name="LAST_COMMIT_MESSAGE" value="modion det and cam tracker with respawn fitures" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
