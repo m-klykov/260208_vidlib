@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="camrea tracker">
-      <change afterPath="$PROJECT_DIR$/vidlab/f_motion_det.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="modion det base">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_cam_tracker2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_cam_tracker2d.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_motion_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_motion_det.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,14 +101,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00002" summary="base functional video playback">
-      <option name="closed" value="true" />
-      <created>1770562721628</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1770562721628</updated>
     </task>
     <task id="LOCAL-00003" summary="add scene list widget, last frame buff">
       <option name="closed" value="true" />
@@ -493,11 +486,18 @@
       <option name="project" value="LOCAL" />
       <updated>1771278461342</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="modion det base">
+      <option name="closed" value="true" />
+      <created>1771279361691</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1771279361691</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="ctrl arrow for jump to mrkers" />
     <MESSAGE value="move save methods in asinc_base, fix controller.to_end, min_scene_dur in scene decector" />
     <MESSAGE value="ai obj detector" />
     <MESSAGE value="using cuda version torch, float and bool type in filter_man" />
@@ -522,7 +522,8 @@
     <MESSAGE value="trackinh ro bin file and two way auto/manual tracjing" />
     <MESSAGE value="fix trackrescan" />
     <MESSAGE value="camrea tracker" />
-    <option name="LAST_COMMIT_MESSAGE" value="camrea tracker" />
+    <MESSAGE value="modion det base" />
+    <option name="LAST_COMMIT_MESSAGE" value="modion det base" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

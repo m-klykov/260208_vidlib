@@ -276,96 +276,70 @@ class FilterCameraTracker2D(FilterAsyncBase):
         painter.restore()
 
     def run_internal_logic(self, worker):
-        """Асинхронный сканер: только вычисления"""
         cap = cv2.VideoCapture(self.video_path)
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        # 1. Задаем матрицу камеры (K)
-        focal_length = w * 7
-        center = (w / 2, h / 2)
-        K = np.array([
-            [focal_length, 0, center[0]],
-            [0, focal_length, center[1]],
-            [0, 0, 1]
-        ], dtype=np.float32)
+        # Инициализируем компоненты
+        fm = FeatureManager(max_corners=200, min_distance=30)
+        estimator = PoseEstimator()
 
-        prev_gray = None
-        prev_pts = None
-
-        # Глобальные данные
-        all_deltas = []  # Храним [yaw, move_x, move_z]
+        # Состояние
+        all_deltas = []
         marks = []
-        frame_idx = 0
-        prev_valid_delta = [0, 0, 0, 0, 0, 0]
+        prev_gray = None
 
-        while worker.is_running:
+        # Параметры из UI
+        min_features = self.get_param("min_features")
+        fov_factor = 6  # Допустим, добавили такой параметр
+
+        # Пересчитываем матрицу K (на случай, если параметр изменили в процессе)
+        K = estimator.build_k(w, h, fov_factor)
+
+        for frame_idx in range(total_frames):
+            if not worker.is_running: break
             ret, frame = cap.read()
             if not ret: break
 
             curr_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            delta = [0] * 6  # По умолчанию стоим
+
+
 
             if prev_gray is not None:
-                # 2. Ищем точки
-                if prev_pts is None or len(prev_pts) < 100:
-                    prev_pts = cv2.goodFeaturesToTrack(prev_gray, maxCorners=300, qualityLevel=0.01, minDistance=30)
+                # 1. Менеджмент точек
+                if frame_idx % 1 == 0:  # Подсеиваем только каждый 3-й кадр
+                    fm.replenish_fast(prev_gray)
 
-                if prev_pts is not None:
-                    curr_pts, status, _ = cv2.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, None)
+                pts_p, pts_c, status = fm.update(prev_gray, curr_gray)
 
-                    good_prev = prev_pts[status == 1]
-                    good_curr = curr_pts[status == 1]
+                # 2. Проверка достаточности фич
+                if pts_p is not None and len(pts_p) > min_features:
+                    res, mask, success = estimator.estimate(pts_p, pts_c, K)
 
-                    if len(good_prev) > self.get_param("min_features"):
-                        # 3. Находим Essential Matrix
-                        E, mask = cv2.findEssentialMat(good_curr, good_prev, K, method=cv2.RANSAC, prob=0.999,
-                                                       threshold=1.0)
-
-                        if E is not None and E.shape == (3, 3):
-                            # mask_pose покажет, сколько точек реально "согласны" с этой позой
-                            num_inliers, R, t, mask_pose = cv2.recoverPose(E, good_curr, good_prev, K)
-
-                            inlier_ratio = num_inliers / len(good_curr)
-
-                            # 1. Если инлайеров меньше 50% или их абсолютное количество мало - это шум
-                            if False and (num_inliers < 30 or inlier_ratio < 0.5):
-                                all_deltas.append(prev_valid_delta)  # Оставляем прошлое движение
-                                continue
-
-                            # Извлекаем углы
-                            yaw = np.arctan2(R[0, 2], R[2, 2])
-                            pitch = np.arcsin(-R[1, 2])
-                            roll = np.arctan2(R[1, 0], R[1, 1])
-                            tx, ty, tz = t[0][0], t[1][0], t[2][0]
-
-                            current_delta = [yaw, pitch, roll, tx, ty, tz]
-
-                            # 2. Проверка на "разрыв реальности"
-                            # Если yaw изменился более чем на 0.2 радиана (~11 град) за 1 кадр - это выброс
-                            if  abs(yaw) > 0.2:
-                                current_delta[0] = 0
-                            else:
-                                prev_valid_delta = current_delta
-
-                            all_deltas.append(current_delta)
-
-                            prev_pts = good_curr[mask.flatten() > 0].reshape(-1, 1, 2)
-                        else:
-                            all_deltas.append([0, 0, 0, 0, 0, 0])
+                    if success:
+                        delta = res
+                        # Оставляем только те точки, что подтвердили Pose
+                        fm.pts = pts_c[mask].reshape(-1, 1, 2)
                     else:
+                        # Ошибка геометрии — ставим маркер
                         marks.append(frame_idx)
-                        all_deltas.append([0, 0, 0, 0, 0, 0])
-                        prev_pts = None
+                        fm.pts = pts_c.reshape(-1, 1, 2)
+                else:
+                    # Потеря трекинга — ставим маркер
+                    marks.append(frame_idx)
+                    fm.pts = None
 
+            all_deltas.append(delta)
             prev_gray = curr_gray
-            frame_idx += 1
 
-            if frame_idx % 60 == 0:
+            # Отправка данных каждые 60 кадров
+            if frame_idx % 200 == 0:
                 worker.progress.emit({
                     "raw_deltas": list(all_deltas),
                     "marks": list(marks),
-                    "ranges": [[0, frame_idx]],
+                    "ranges": [[0, frame_idx]],  # Диапазон для отрисовки "хвоста"
                     "progress": int(100 * frame_idx / total_frames)
                 })
 
@@ -373,8 +347,9 @@ class FilterCameraTracker2D(FilterAsyncBase):
         worker.progress.emit({
             "raw_deltas": list(all_deltas),
             "marks": list(marks),
-            "ranges": [[0, frame_idx]],
-            "progress": 100})
+            "ranges": [[0, total_frames]],
+            "progress": 100
+        })
 
     def _on_worker_progress(self, data):
         """Принимаем пакеты данных и обновляем путь"""
@@ -388,4 +363,94 @@ class FilterCameraTracker2D(FilterAsyncBase):
 
         if "progress" in data:
             self.progress = data["progress"]
+
+
+class FeatureManager:
+    def __init__(self, max_corners=300, min_distance=30):
+        self.max_corners = max_corners
+        self.min_distance = min_distance
+        self.pts = None
+
+    def update(self, prev_gray, curr_gray):
+        """Проводит трекинг существующих точек"""
+        if self.pts is None or len(self.pts) == 0:
+            return None, None, None
+
+        new_pts, status, _ = cv2.calcOpticalFlowPyrLK(prev_gray, curr_gray, self.pts, None)
+        if new_pts is None or status is None:
+            return None, None, None
+
+        status = status.flatten() == 1
+        return self.pts[status], new_pts[status], status
+
+    def replenish(self, frame_gray):
+        """Подсеивает новые точки в пустые зоны кадра"""
+        new_feats = cv2.goodFeaturesToTrack(frame_gray, self.max_corners, 0.01, self.min_distance)
+        if new_feats is None: return
+
+        if self.pts is None or len(self.pts) == 0:
+            self.pts = new_feats
+            return
+
+        # Фильтр близости (Bucketing/Distance check)
+        existing = self.pts.reshape(-1, 2)
+        candidates = new_feats.reshape(-1, 2)
+
+        to_add = []
+        for cand in candidates:
+            if np.min(np.linalg.norm(existing - cand, axis=1)) > self.min_distance:
+                to_add.append(cand)
+
+        if to_add:
+            new_stack = np.array(to_add, dtype=np.float32).reshape(-1, 1, 2)
+            self.pts = np.vstack([self.pts, new_stack])
+
+    def replenish_fast(self, frame_gray):
+        # Создаем маску, где 255 - можно искать, 0 - нельзя
+        mask = np.full(frame_gray.shape, 255, dtype=np.uint8)
+
+        if self.pts is not None:
+            for pt in self.pts:
+                # Рисуем черные круги вокруг существующих точек
+                cv2.circle(mask, tuple(pt.ravel().astype(int)), self.min_distance, 0, -1)
+
+        # Ищем новые точки только там, где разрешено маской
+        new_feats = cv2.goodFeaturesToTrack(frame_gray, self.max_corners, 0.01, self.min_distance, mask=mask)
+
+        if new_feats is not None:
+            if self.pts is None or len(self.pts) == 0:
+                self.pts = new_feats
+            else:
+                self.pts = np.vstack([self.pts, new_feats])
+
+    def filter_by_mask(self, mask):
+        """Оставляет только подтвержденные инлайеры"""
+        if self.pts is not None and mask is not None:
+            self.pts = self.pts[mask.flatten() > 0].reshape(-1, 1, 2)
+
+
+class PoseEstimator:
+    @staticmethod
+    def build_k(w, h, fov_factor):
+        """fov_factor — это тот самый множитель (w * 7)"""
+        f = w * fov_factor
+        return np.array([
+            [f, 0, w / 2],
+            [0, f, h / 2],
+            [0, 0, 1]
+        ], dtype=np.float32)
+
+    def estimate(self, pts_prev, pts_curr, K):
+        E, mask = cv2.findEssentialMat(pts_curr, pts_prev, K, method=cv2.RANSAC, threshold=1.0)
+        if E is None or E.shape != (3, 3):
+            return None, None, False
+
+        _, R, t, mask_pose = cv2.recoverPose(E, pts_curr, pts_prev, K)
+
+        yaw = np.arctan2(R[0, 2], R[2, 2])
+        pitch = np.arcsin(-R[1, 2])
+        roll = np.arctan2(R[1, 0], R[1, 1])
+
+        combined_mask = (mask.flatten() > 0) & (mask_pose.flatten() > 0)
+        return [yaw, pitch, roll, t[0][0], t[1][0], t[2][0]], combined_mask, True
 
