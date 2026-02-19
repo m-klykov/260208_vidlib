@@ -12,7 +12,9 @@ class FilterAiDepth(FilterAsyncBase):
     def __init__(self, num, cache_dir, params=None):
         if not params:
             params = {
-                "conf": 0.25,
+                "pos_x": 0.0,  # Центр по горизонтали
+                "pos_y": 0.0,  # Центр по вертикали
+                "alpha": 0.5,     # Прозрачность (0.0 - только видео, 1.0 - только глубина)
                 "colormap": "MAGMA", # MAGMA дает красивый переход от черного к желтому
                 "max_depth": 50.0  # Максимальная дистанция для нормализации (в метрах)
             }
@@ -27,7 +29,9 @@ class FilterAiDepth(FilterAsyncBase):
 
     def get_params_metadata(self):
         return {
-            "conf": {"type": "float", "min": 0.1, "max": 1.0, "default": 0.25},
+            "pos_x": {"type": "float", "min": -1, "max": 1, "default": 0},
+            "pos_y": {"type": "float", "min": -1, "max": 1, "default": 0},
+            "alpha": {"type": "float", "min": 0, "max": 1, "default": 0.5},
             "max_depth": {"type": "float", "min": 1.0, "max": 200.0, "default": 50.0},
             "colormap": {"type": "list", "values": ["MAGMA"], "default": "MAGMA"}
         }
@@ -46,7 +50,8 @@ class FilterAiDepth(FilterAsyncBase):
                 self._pipe = pipeline(
                     task="depth-estimation",
                     model=local_model_path,  # Теперь здесь ПУТЬ, а не ID
-                    device=device
+                    device=device,
+                    model_kwargs={"torch_dtype": torch.float16}  # Использовать половинную точность
                 )
 
                 # self._pipe = pipeline(
@@ -64,29 +69,56 @@ class FilterAiDepth(FilterAsyncBase):
         if pipe is None: return frame
 
         # Превращаем OpenCV (BGR) в PIL Image (RGB)
-        color_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pil_img = Image.fromarray(color_frame)
+        pipe = self._get_model()
+        if pipe is None: return frame
 
-        # Инференс
-        result = pipe(pil_img)
+        h, w = frame.shape[:2]
+
+        # 1. Получаем карту глубины
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_img = Image.fromarray(rgb_frame)
+        with torch.inference_mode():
+            result = pipe(pil_img)
 
         # 'depth' возвращает PIL изображение с картой глубин
-        depth_map = np.array(result['predicted_depth'])
+        depth_map = np.array(result['predicted_depth']).astype(np.float32)
 
-        # Нормализация для визуализации
-        depth_min = depth_map.min()
-        depth_max = depth_map.max()
-        depth_norm = (depth_map - depth_min) / (depth_max - depth_min)
-        depth_rescaled = (depth_norm * 255).astype(np.uint8)
+        # --- ЗАЩИТА ---
+        # 1. Убираем лишние размерности (превращаем (1, H, W) в (H, W))
+        if len(depth_map.shape) > 2:
+            depth_map = np.squeeze(depth_map)
 
-        # Применяем Magma или Infermo
-        color_depth = cv2.applyColorMap(depth_rescaled, cv2.COLORMAP_MAGMA)
+        # 2. Подготовка цветной карты глубины
 
-        # Возвращаем размер к исходному (если pipeline его изменил)
-        if color_depth.shape[:2] != frame.shape[:2]:
-            color_depth = cv2.resize(color_depth, (frame.shape[1], frame.shape[0]))
+        depth_rescaled = cv2.normalize(depth_map, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
 
-        return color_depth
+        colormap = self.color_maps[self.get_param("colormap")]
+        depth_colored = cv2.applyColorMap(depth_rescaled, colormap)
+
+        # 3. Наложение (Transparency)
+        # Формула: frame * (1 - alpha) + depth * alpha
+        alpha = self.get_param("alpha")
+        blended = cv2.addWeighted(frame, 1 - alpha, depth_colored, alpha, 0)
+
+        # 4. Работа с точкой замера (pos_x, pos_y от -1 до 1)
+        # Переводим [-1, 1] в координаты пикселей [0, w] и [0, h]
+        pixel_x = int((self.get_param("pos_x") + 1) / 2 * (w - 1))
+        pixel_y = int((self.get_param("pos_y") + 1) / 2 * (h - 1))
+
+        # Ограничиваем, чтобы не вылететь за границы массива
+        pixel_x = np.clip(pixel_x, 0, w - 1)
+        pixel_y = np.clip(pixel_y, 0, h - 1)
+
+        # Берем значение глубины в этой точке
+        raw_val = depth_map[pixel_y, pixel_x]
+
+        # 5. Отрисовка прицела
+        color = (0, 255, 0)  # Зеленый
+        cv2.drawMarker(blended, (pixel_x, pixel_y), color, cv2.MARKER_CROSS, 20, 2)
+        cv2.putText(blended, f"Val: {raw_val:.2f}", (pixel_x + 10, pixel_y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, color, 2)
+
+        return blended
 
     def _colorize_depth(self, depth_map):
         # Ограничиваем глубину сверху для лучшего контраста
