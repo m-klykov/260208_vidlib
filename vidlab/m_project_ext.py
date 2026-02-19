@@ -1,6 +1,7 @@
 import json
 import os
 
+from .f_ai_depth import FilterAiDepth
 from .f_base import FilterBase
 from .f_bw import FilterBW
 from .f_cam_tracker2d import FilterCameraTracker2D
@@ -32,6 +33,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "Scene Detector": FilterSceneDetector,
             "AI Object Detector": FilterObjectDetector,
             "AI Face Blur": FilterFaceBlur,
+            "AI Depth Visualizer": FilterAiDepth,
             "Stabilizer": FilterStabilizer,
             "CameraTracker2D": FilterCameraTracker2D,
             "Map Tracker": FilterMapTracker,

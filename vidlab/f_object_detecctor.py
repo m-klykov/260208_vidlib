@@ -49,7 +49,7 @@ class FilterObjectDetector(FilterAsyncBase):
         if self._model is None:
             # Выбираем файл модели в зависимости от константы
             # model_name = 'yolov8n-seg.pt' if USE_SEGMENTATION else 'yolov8n.pt'
-            model_name = 'yolov8s-seg.pt' if USE_SEGMENTATION else 'yolov8s.pt'
+            model_name = 'yolo11s-seg.pt' if USE_SEGMENTATION else 'yolo11s.pt'
             model_path = os.path.join(os.getcwd(), 'models', model_name)
             self._model = YOLO(model_path)
 
