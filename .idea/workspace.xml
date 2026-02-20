@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="modion det and cam tracker with respawn fitures">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="ai depth detector with alpha and moming meter">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_motion_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_motion_det.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_ai_depth.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_ai_depth.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,54 +100,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00004" summary="add cur and total time">
-      <option name="closed" value="true" />
-      <created>1770566687387</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1770566687387</updated>
-    </task>
-    <task id="LOCAL-00005" summary="recent files, settings model, restore grometry">
-      <option name="closed" value="true" />
-      <created>1770569477916</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1770569477916</updated>
-    </task>
-    <task id="LOCAL-00006" summary="active rirle and status bar info">
-      <option name="closed" value="true" />
-      <created>1770572635783</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1770572635783</updated>
-    </task>
-    <task id="LOCAL-00007" summary="editable scene list saved in jshn for each file">
-      <option name="closed" value="true" />
-      <created>1770578208108</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1770578208108</updated>
-    </task>
-    <task id="LOCAL-00008" summary="scene list context menu">
-      <option name="closed" value="true" />
-      <created>1770578763814</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1770578763814</updated>
-    </task>
-    <task id="LOCAL-00009" summary="in place editing">
-      <option name="closed" value="true" />
-      <created>1770579784555</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1770579784555</updated>
     </task>
     <task id="LOCAL-00010" summary="pip files">
       <option name="closed" value="true" />
@@ -493,16 +445,58 @@
       <option name="project" value="LOCAL" />
       <updated>1771290849370</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="modion det visual tune">
+      <option name="closed" value="true" />
+      <created>1771351547467</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1771351547467</updated>
+    </task>
+    <task id="LOCAL-00054" summary="camera tracker model">
+      <option name="closed" value="true" />
+      <created>1771434659296</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1771434659297</updated>
+    </task>
+    <task id="LOCAL-00055" summary="map tracker model and filter">
+      <option name="closed" value="true" />
+      <created>1771441678439</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1771441678439</updated>
+    </task>
+    <task id="LOCAL-00056" summary="map tracker model with austconfig">
+      <option name="closed" value="true" />
+      <created>1771457407910</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1771457407910</updated>
+    </task>
+    <task id="LOCAL-00057" summary="ai depth detector using torch and transformer">
+      <option name="closed" value="true" />
+      <created>1771470135506</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1771470135506</updated>
+    </task>
+    <task id="LOCAL-00058" summary="ai depth detector with alpha and moming meter">
+      <option name="closed" value="true" />
+      <created>1771474594043</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1771474594044</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="ai obj detector" />
-    <MESSAGE value="using cuda version torch, float and bool type in filter_man" />
-    <MESSAGE value="gpu used, update ranges" />
-    <MESSAGE value="add segmentation model, show contur. new range extractor" />
-    <MESSAGE value="asinc scan for object detector" />
-    <MESSAGE value="stabilizer" />
     <MESSAGE value="saw raw data only and lazy smoothing for stabiliser" />
     <MESSAGE value="crop with resize and resize filter to target dims" />
     <MESSAGE value="busted resize with offset and overlay" />
@@ -522,7 +516,13 @@
     <MESSAGE value="camrea tracker" />
     <MESSAGE value="modion det base" />
     <MESSAGE value="modion det and cam tracker with respawn fitures" />
-    <option name="LAST_COMMIT_MESSAGE" value="modion det and cam tracker with respawn fitures" />
+    <MESSAGE value="modion det visual tune" />
+    <MESSAGE value="camera tracker model" />
+    <MESSAGE value="map tracker model and filter" />
+    <MESSAGE value="map tracker model with austconfig" />
+    <MESSAGE value="ai depth detector using torch and transformer" />
+    <MESSAGE value="ai depth detector with alpha and moming meter" />
+    <option name="LAST_COMMIT_MESSAGE" value="ai depth detector with alpha and moming meter" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

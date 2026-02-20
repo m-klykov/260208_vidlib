@@ -32,7 +32,7 @@ class FilterAiDepth(FilterAsyncBase):
             "pos_x": {"type": "float", "min": -1, "max": 1, "default": 0},
             "pos_y": {"type": "float", "min": -1, "max": 1, "default": 0},
             "alpha": {"type": "float", "min": 0, "max": 1, "default": 0.5},
-            "max_depth": {"type": "float", "min": 1.0, "max": 200.0, "default": 50.0},
+            "scale": {"type": "float", "min": 1.0, "max": 50.0, "default": 10.0},
             "colormap": {"type": "list", "values": ["MAGMA"], "default": "MAGMA"}
         }
 
@@ -112,10 +112,21 @@ class FilterAiDepth(FilterAsyncBase):
         # Берем значение глубины в этой точке
         raw_val = depth_map[pixel_y, pixel_x]
 
+        # 1. Параметры для калибровки (можно вынести в ползунки)
+        # scale_factor подберем экспериментально (начни с 10.0)
+        scale_factor = self.get_param("scale")
+        shift = 0.01  # Защита от деления на 0
+
+        # 2. Превращаем инвертированную глубину в линейную
+        # Чем выше RawValue, тем меньше будет результат в "метрах"
+        metric_depth = scale_factor / (depth_map + shift)
+
+        dist_meters = metric_depth[pixel_y, pixel_x]
+
         # 5. Отрисовка прицела
         color = (0, 255, 0)  # Зеленый
         cv2.drawMarker(blended, (pixel_x, pixel_y), color, cv2.MARKER_CROSS, 20, 2)
-        cv2.putText(blended, f"Val: {raw_val:.2f}", (pixel_x + 10, pixel_y - 10),
+        cv2.putText(blended, f"Val: {dist_meters:.2f}", (pixel_x + 10, pixel_y - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 2, color, 2)
 
         return blended
@@ -138,3 +149,18 @@ class FilterAiDepth(FilterAsyncBase):
         # return cv2.addWeighted(frame, 0.3, color_depth, 0.7, 0)
 
         return color_depth
+
+    def handle_mouse_press(self, pos, rect, event):
+        if not rect.contains(pos): return
+
+        w, h = rect.width(), rect.height()
+        sx, sy = rect.left(), rect.top()
+
+        # Переводим пиксели в диапазон [-1, 1]
+        norm_x = (2.0 * (pos.x()-sx) / w) - 1.0
+        norm_y = (2.0 * (pos.y()-sy) / h) - 1.0
+
+        self.set_param("pos_x", max(-1.0, min(1.0,norm_x)))
+        self.set_param("pos_y", max(-1.0, min(1.0, norm_y)))
+
+        return True
