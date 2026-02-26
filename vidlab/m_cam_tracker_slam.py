@@ -10,7 +10,7 @@ class CameraTrackerSlamModel:
         self.params = params
 
         # Инструменты
-        self.K = self.build_k(w, h, 6.0)  # FOV factor
+        self.K = self.build_k(w, h, 111)  # FOV factor
 
         # Состояние (Мир)
         self.prev_gray = None
@@ -77,7 +77,7 @@ class CameraTrackerSlamModel:
             self.poses.append(self.current_pose.copy())
 
             # --- ТЕПЕРЬ ТРИАНГУЛИРУЕМ ---
-            # self._triangulate_points(idx)
+            # self._refine_3d_points(idx)
         else:
             # Для самого первого кадра тоже нужна поза в списке
             self.poses.append(self.current_pose.copy())
@@ -278,6 +278,37 @@ class CameraTrackerSlamModel:
                         'age': age
                     })
 
+    def _refine_3d_points(self, idx):
+        T_curr_inv = np.linalg.inv(self.current_pose)
+        P2 = self.K @ T_curr_inv[:3, :]
+
+        for pt_id, data in self.active_pts.items():
+            age = idx - data['first_pose_idx']
+            if age < 5: continue  # Ждем минимальный параллакс
+
+            # Триангулируем текущее положение относительно старта
+            start_pose = self.poses[data['first_pose_idx']]
+            P1 = self.K @ np.linalg.inv(start_pose)[:3, :]
+
+            pts4d = cv2.triangulatePoints(P1, P2,
+                                          data['first_pt'].reshape(2, 1).astype(np.float32),
+                                          data['pt'].reshape(2, 1).astype(np.float32))
+            new_pos_3d = (pts4d[:3] / (pts4d[3] + 1e-8)).flatten()
+
+            if data['pos_3d'] is None:
+                data['pos_3d'] = new_pos_3d
+                data['history_3d'] = [new_pos_3d]
+            else:
+                # Считаем "дрейф" — насколько точка сместилась в МИРЕ с прошлого кадра
+                drift = np.linalg.norm(new_pos_3d - data['pos_3d'])
+
+                # Если дрейф слишком большой — это либо машина, либо ошибка трекера
+                if drift > 0.5:  # Порог (нужно настраивать)
+                    data['is_dynamic'] = True
+
+                    # Обновляем позицию (можно через среднее или фильтр Калмана)
+                data['pos_3d'] = 0.8 * data['pos_3d'] + 0.2 * new_pos_3d
+
     def get_results(self):
         # Траектория камеры
         path = [[p[0, 3], p[2, 3], np.arctan2(p[0, 2], p[2, 2])] for p in self.poses]
@@ -329,9 +360,23 @@ class CameraTrackerSlamModel:
         _, R, t, mask_p = cv2.recoverPose(E, pts_curr, pts_prev, self.K)
         return R, t, (mask.flatten() > 0) & (mask_p.flatten() > 0), True
 
-    def build_k(self, w, h, fov):
-        f = w * fov
-        return np.array([[f, 0, w / 2], [0, f, h / 2], [0, 0, 1]], dtype=np.float32)
+    def build_k(self, w, h, fov_deg):
+        # 1. Переводим градусы в радианы
+        fov_rad = np.deg2rad(fov_deg)
+
+        # 2. Рассчитываем фокусное расстояние в пикселях
+        # Формула: f = (w/2) / tan(fov_rad / 2)
+        f = (w / 2.0) / np.tan(fov_rad / 2.0)
+
+        # Центр изображения (Principal Point)
+        cx = w / 2.0
+        cy = h / 2.0
+
+        return np.array([
+            [f, 0, cx],
+            [0, f, cy],
+            [0, 0, 1]
+        ], dtype=np.float32)
 
     def _adapt_logic(self):
         # --- КОНТУР 1: Детектор (Количество активных точек) ---

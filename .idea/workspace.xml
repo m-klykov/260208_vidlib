@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="ai depth detector with alpha and moming meter">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="ai depth detector with mouse peeking">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_ai_depth.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_ai_depth.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_motion_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_motion_det.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_cam_tracker_slam.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_cam_tracker_slam.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,14 +101,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00010" summary="pip files">
-      <option name="closed" value="true" />
-      <created>1770579825271</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1770579825271</updated>
     </task>
     <task id="LOCAL-00011" summary="corret inline editing (only title)">
       <option name="closed" value="true" />
@@ -493,11 +486,18 @@
       <option name="project" value="LOCAL" />
       <updated>1771474594044</updated>
     </task>
-    <option name="localTasksCounter" value="59" />
+    <task id="LOCAL-00059" summary="ai depth detector with mouse peeking">
+      <option name="closed" value="true" />
+      <created>1771629366841</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1771629366841</updated>
+    </task>
+    <option name="localTasksCounter" value="60" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="saw raw data only and lazy smoothing for stabiliser" />
     <MESSAGE value="crop with resize and resize filter to target dims" />
     <MESSAGE value="busted resize with offset and overlay" />
     <MESSAGE value="ai face blur" />
@@ -522,7 +522,8 @@
     <MESSAGE value="map tracker model with austconfig" />
     <MESSAGE value="ai depth detector using torch and transformer" />
     <MESSAGE value="ai depth detector with alpha and moming meter" />
-    <option name="LAST_COMMIT_MESSAGE" value="ai depth detector with alpha and moming meter" />
+    <MESSAGE value="ai depth detector with mouse peeking" />
+    <option name="LAST_COMMIT_MESSAGE" value="ai depth detector with mouse peeking" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
