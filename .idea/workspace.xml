@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="ai depth detector with mouse peeking">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="perfect mov detect">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_motion_det.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_motion_det.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_cam_tracker_slam.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_cam_tracker_slam.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_cam_tracker2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_cam_tracker2d.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_cam_tracker_cv2.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_cam_tracker_cv2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,14 +102,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00011" summary="corret inline editing (only title)">
-      <option name="closed" value="true" />
-      <created>1770585537808</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1770585537808</updated>
     </task>
     <task id="LOCAL-00012" summary="go in out nav">
       <option name="closed" value="true" />
@@ -494,11 +487,18 @@
       <option name="project" value="LOCAL" />
       <updated>1771629366841</updated>
     </task>
-    <option name="localTasksCounter" value="60" />
+    <task id="LOCAL-00060" summary="perfect mov detect">
+      <option name="closed" value="true" />
+      <created>1772147582116</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1772147582116</updated>
+    </task>
+    <option name="localTasksCounter" value="61" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="crop with resize and resize filter to target dims" />
     <MESSAGE value="busted resize with offset and overlay" />
     <MESSAGE value="ai face blur" />
     <MESSAGE value="ai face blur with memory against face lost" />
@@ -523,7 +523,8 @@
     <MESSAGE value="ai depth detector using torch and transformer" />
     <MESSAGE value="ai depth detector with alpha and moming meter" />
     <MESSAGE value="ai depth detector with mouse peeking" />
-    <option name="LAST_COMMIT_MESSAGE" value="ai depth detector with mouse peeking" />
+    <MESSAGE value="perfect mov detect" />
+    <option name="LAST_COMMIT_MESSAGE" value="perfect mov detect" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

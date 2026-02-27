@@ -35,7 +35,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "AI Face Blur": FilterFaceBlur,
             "AI Depth Visualizer": FilterAiDepth,
             "Stabilizer": FilterStabilizer,
-            "CameraTracker2D": FilterCameraTracker2D,
+            "Camera Tracker 2D": FilterCameraTracker2D,
             "Map Tracker": FilterMapTracker,
             "Motion Detector": FilterMotionDetector,
         }

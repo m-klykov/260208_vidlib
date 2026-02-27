@@ -26,12 +26,11 @@ class FilterCameraTracker2D(FilterAsyncBase):
             default_params.update(params)
 
         super().__init__(num, cache_dir, default_params)
-        self.name = "CameraTracker2D"
+        self.name = "Camera Tracker 2D"
 
         # Данные в памяти
         self._abs_path = np.array([], dtype=np.float32)  # Накопленный путь [x, y, angle]
         self._marks = []  # Кадры смены сцен
-        self._raw_deltas = []  # Список дельт, полученных от воркера
 
         self.load_data()
 
@@ -57,7 +56,6 @@ class FilterCameraTracker2D(FilterAsyncBase):
             "version": DATA_VERSION,
             "ranges": self._analyzed_ranges,
             "marks": self._detected_scenes,
-            "raw_deltas": self._raw_deltas,
             "abs_path": self._abs_path
         }
         np.save(self.get_npy_filename(), payload)
@@ -71,7 +69,6 @@ class FilterCameraTracker2D(FilterAsyncBase):
                     self._analyzed_ranges = payload.get("ranges", [])
                     self._detected_scenes = payload.get("marks", [])
                     self._abs_path = payload.get("abs_path", np.array([]))
-                    self._raw_deltas = payload.get("raw_deltas", np.array([]))
             except Exception as e:
                 print(f"Error loading {self.name} cache: {e}")
 
@@ -108,9 +105,10 @@ class FilterCameraTracker2D(FilterAsyncBase):
         painter.setBrush(QBrush(QColor(30, 30, 30, 150)))
         painter.drawRoundedRect(map_rect, 5, 5)
 
+        path_to_draw = np.array(self._abs_path, dtype=np.float32)
         # 3. Подготовка данных пути
         step = max(1, len(self._abs_path) // 600)
-        path_to_draw = self._abs_path[::step]
+        path_to_draw = path_to_draw[::step]
 
         if len(path_to_draw) > 1:
             # Вычисляем границы для нормализации
@@ -173,7 +171,7 @@ class FilterCameraTracker2D(FilterAsyncBase):
                 painter.drawEllipse(camera_pos, 4, 4)
 
                 # графики
-                self._draw_data_gr(painter, idx, viewport_rect)
+                # self._draw_data_gr(painter, idx, viewport_rect)
 
 
         painter.restore()  # Возвращаем настройки painter в исходное состояние
@@ -255,8 +253,8 @@ class FilterCameraTracker2D(FilterAsyncBase):
 
         # Создаем модель
         params = {
-                "min_features" : self.get_param("min_features"),
-            }
+            # "min_features" : self.get_param("min_features"),
+        }
 
         model = CameraTrackerCv2Model(w, h, params)
 
@@ -284,9 +282,6 @@ class FilterCameraTracker2D(FilterAsyncBase):
         """Принимаем пакеты данных и обновляем путь"""
         if "abs_path" in data:
             self._abs_path = data["abs_path"]
-
-        if "abs_path" in data:
-            self._raw_deltas = data["raw_deltas"]
 
         if "ranges" in data: self._analyzed_ranges = data["ranges"]
         if "marks" in data: self._detected_scenes = data["marks"]
