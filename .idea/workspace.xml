@@ -4,12 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="Cam tracker by motion det tehnics">
-      <change afterPath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/vidlab/m_slam_base.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="slam tracker base">
+      <change afterPath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_crop.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_crop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_slam_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_slam_base.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,14 +103,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00013" summary="crop in out mode">
-      <option name="closed" value="true" />
-      <created>1770593781323</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1770593781323</updated>
     </task>
     <task id="LOCAL-00014" summary="make screenshots + toolbar">
       <option name="closed" value="true" />
@@ -496,11 +488,18 @@
       <option name="project" value="LOCAL" />
       <updated>1772160177675</updated>
     </task>
-    <option name="localTasksCounter" value="62" />
+    <task id="LOCAL-00062" summary="slam tracker base">
+      <option name="closed" value="true" />
+      <created>1772225946539</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1772225946539</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="ai face blur" />
     <MESSAGE value="ai face blur with memory against face lost" />
     <MESSAGE value="export video to file" />
     <MESSAGE value="elipse filter" />
@@ -525,7 +524,8 @@
     <MESSAGE value="ai depth detector with mouse peeking" />
     <MESSAGE value="perfect mov detect" />
     <MESSAGE value="Cam tracker by motion det tehnics" />
-    <option name="LAST_COMMIT_MESSAGE" value="Cam tracker by motion det tehnics" />
+    <MESSAGE value="slam tracker base" />
+    <option name="LAST_COMMIT_MESSAGE" value="slam tracker base" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

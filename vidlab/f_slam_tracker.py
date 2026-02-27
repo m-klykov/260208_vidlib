@@ -6,12 +6,13 @@ from PySide6.QtCore import Qt, QPointF, QRectF
 
 from vidlab.f_asinc_base import FilterAsyncBase
 from .m_slam_base import SlamBaseModel  # Или конкретная реализация потомка
+from .m_slam_cv2d import SlamCv2dModel
 
 
 class FilterSlamTracker(FilterAsyncBase):
     def __init__(self, num, cache_dir, params=None):
         # Создаем временную модель, чтобы забрать метаданные параметров
-        self.interactive_model = SlamBaseModel(is_batch_mode=False)
+        self.interactive_model = SlamCv2dModel(is_batch_mode=False)
 
         super().__init__(num, cache_dir, params)
         self.name = "SLAM Tracker"
@@ -79,24 +80,42 @@ class FilterSlamTracker(FilterAsyncBase):
         h, w = frame.shape[:2]
         cx, cy = w // 2, h // 2
 
-        # Используем логику из твоего MotionDetector
         overlay = frame.copy()
         R = cv2.getRotationMatrix2D((cx, cy), roll, 1.0)
         px_per_deg = w / self.get_param("fov_h", 111.0)
-        pitch_offset = int(pitch * px_per_deg)
+
+        # Тангаж (Pitch): инвертируем, чтобы при наклоне камеры вниз линия шла вверх
+        pitch_offset = int(-pitch * px_per_deg)
 
         # Рисуем риски шкалы
-        for ang in range(int(yaw - 60), int(yaw + 60), 5):
-            rel_x = int((ang - yaw) * px_per_deg)
-            pt_x, pt_y = cx + rel_x, cy + pitch_offset
+        # Берем диапазон вокруг текущего yaw
+        fov_view = 60
+        start_ang = int(yaw - fov_view)
+        end_ang = int(yaw + fov_view)
 
-            # Поворот Roll
-            tx = R[0, 0] * pt_x + R[0, 1] * pt_y + R[0, 2]
-            ty = R[1, 0] * pt_x + R[1, 1] * pt_y + R[1, 2]
+        for ang in range(start_ang, end_ang + 1):
+            if ang % 5 == 0:
+                # rel_x: если ang > yaw, точка должна быть справа от центра
+                rel_x = int((ang - yaw) * px_per_deg)
 
-            if 0 <= tx < w and 0 <= ty < h:
-                is_major = (ang % 15 == 0)
-                cv2.circle(overlay, (int(tx), int(ty)), 4 if is_major else 2, (255, 255, 255), -1)
+                pt_x = cx + rel_x
+                pt_y = cy + pitch_offset
+
+                # Применяем Roll через матрицу R
+                tx = R[0, 0] * pt_x + R[0, 1] * pt_y + R[0, 2]
+                ty = R[1, 0] * pt_x + R[1, 1] * pt_y + R[1, 2]
+
+                if 0 <= tx < w and 0 <= ty < h:
+                    is_major = (ang % 15 == 0)
+                    # Положительные градусы приводим к 0-359 для подписи
+                    display_deg = ang % 360
+
+                    color = (255, 255, 255) if is_major else (10, 10, 10)
+                    cv2.circle(overlay, (int(tx), int(ty)), 5, color, -1)
+
+                    if is_major:
+                        cv2.putText(overlay, str(display_deg), (int(tx) - 10, int(ty) - 10),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 
         alpha = self.get_param("horizon_alpha")
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
@@ -187,7 +206,7 @@ class FilterSlamTracker(FilterAsyncBase):
             camera_pos = QPointF(cx, cy)
 
             if map_rect.contains(camera_pos):
-                angle = curr_data[2]  # В радианах
+                angle = np.radians(curr_data[2])  # В радианах
                 fov_len = 25.0
                 fov_angle = 0.4  # Полуширина конуса
 
@@ -219,7 +238,7 @@ class FilterSlamTracker(FilterAsyncBase):
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
         # Создаем пакетную модель
-        batch_model = SlamBaseModel(is_batch_mode=True)
+        batch_model = SlamCv2dModel(is_batch_mode=True)
         batch_model.set_params(self.get_params())
 
         for f_idx in range(total_frames):

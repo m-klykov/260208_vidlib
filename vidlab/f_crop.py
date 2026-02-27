@@ -6,6 +6,15 @@ from .f_base import FilterBase
 
 class FilterCrop(FilterBase):
     def __init__(self, num, cache_dir, params=None):
+
+        # Конфигурация сторон для мыши: [параметр, ось, инверсия]
+        self._side_map = {
+            'left': {'axis': 'x', 'inv': False},
+            'right': {'axis': 'x', 'inv': True},
+            'top': {'axis': 'y', 'inv': False},
+            'bottom': {'axis': 'y', 'inv': True}
+        }
+
         if not params:
             params = {"top": 0, "bottom": 0, "left": 0, "right": 0, "resize": False}
         super().__init__(num, cache_dir, params)
@@ -15,13 +24,7 @@ class FilterCrop(FilterBase):
         self.is_dragging = False
         self.margin = 10
 
-        # Конфигурация сторон для мыши: [параметр, ось, инверсия]
-        self._side_map = {
-            'left': {'axis': 'x', 'inv': False},
-            'right': {'axis': 'x', 'inv': True},
-            'top': {'axis': 'y', 'inv': False},
-            'bottom': {'axis': 'y', 'inv': True}
-        }
+
 
     def get_params_metadata(self):
         meta = {s: {"type": "int", "min": 0, "max": 49, "default": 0} for s in self._side_map}

@@ -64,6 +64,8 @@ class SlamBaseModel:
         Оркестрация обновления.
         Логика сброса и накопления пути здесь, математика — в _process_core.
         """
+        if idx == self.last_idx: return
+
         if idx != self.last_idx + 1:
             self.reset()
 
