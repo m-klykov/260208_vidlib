@@ -13,7 +13,14 @@ class FilterBase(QObject):
         self.name = "Base Filter"  # Переопределяется в потомках
         self.num = num
         self.cache_dir = cache_dir  # Путь к папке вида video_fdata/
+
         self._params = params or {}
+
+        meta = self.get_params_metadata()
+        for name, data in meta.items():
+            if not name in self._params:
+                self._params[name] = data['default']
+
         self.enabled = True
         self.focused = False
         self._lock = QMutex()

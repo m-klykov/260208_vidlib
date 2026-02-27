@@ -14,6 +14,7 @@ from .f_motion_det import FilterMotionDetector
 from .f_object_detecctor import FilterObjectDetector
 from .f_resize import FilterResize
 from .f_scene_det import FilterSceneDetector
+from .f_slam_tracker import FilterSlamTracker
 from .f_stabilizer import FilterStabilizer
 from .m_project import VideoProjectModel
 
@@ -24,6 +25,7 @@ class VideoProjectExtModel(VideoProjectModel):
         self.filters = []  # Список активных объектов фильтров
 
         # Реестр доступных классов фильтров (Имя -> Класс)
+
         self.filter_registry = {
             "Levels": FilterLevels,
             "Black and White": FilterBW,
@@ -38,6 +40,7 @@ class VideoProjectExtModel(VideoProjectModel):
             "Camera Tracker 2D": FilterCameraTracker2D,
             "Map Tracker": FilterMapTracker,
             "Motion Detector": FilterMotionDetector,
+            "SLAM Tracker": FilterSlamTracker,
         }
 
     def load_project(self, video_path):
