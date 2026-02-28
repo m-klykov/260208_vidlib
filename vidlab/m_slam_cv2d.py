@@ -13,6 +13,10 @@ class SlamCv2dModel(SlamBaseModel):
     def get_params_metadata(self) -> dict:
         """Метаданные параметров для UI фильтра"""
         return {
+            "roi_left": {"type": "float", "min": 0.0, "max": 0.5, "default": 0.0},
+            "roi_right": {"type": "float", "min": 0.5, "max": 1.0, "default": 1.0},
+            "roi_top": {"type": "float", "min": 0.0, "max": 0.5, "default": 0.0},
+            "roi_bottom": {"type": "float", "min": 0.5, "max": 1.0, "default": 1.0},
             "max_corners": {"type": "int", "min": 50, "max": 1000, "default": 400},
             "min_distance": {"type": "int", "min": 5, "max": 100, "default": 25},
             "fov_h": {"type": "float", "min": 30.0, "max": 160.0, "default": 111.0},
@@ -25,13 +29,28 @@ class SlamCv2dModel(SlamBaseModel):
         h, w = gray.shape
         cx, cy = w // 2, h // 2
 
+        # Расчет границ ROI в пикселях
+        x1 = int(w * self.get_param("roi_left", 0.0))
+        x2 = int(w * self.get_param("roi_right", 1.0))
+        y1 = int(h * self.get_param("roi_top", 0.0))
+        y2 = int(h * self.get_param("roi_bottom", 1.0))
+
         # 1. ТРЕКИНГ
         if self.prev_gray is not None and len(self.pts) > self.min_track_points:
             p0 = np.array([d['pt'] for d in self.pts], dtype=np.float32).reshape(-1, 1, 2)
             p1, status, _ = cv2.calcOpticalFlowPyrLK(self.prev_gray, gray, p0, None, **self.optical_flow_params)
 
             if p1 is not None:
-                good = status.flatten() == 1
+
+                p1_flat = p1.reshape(-1, 2)
+                # Проверяем статус и попадание в ROI для каждой точки
+                in_roi = (p1_flat[:, 0] >= x1) & (p1_flat[:, 0] <= x2) & \
+                         (p1_flat[:, 1] >= y1) & (p1_flat[:, 1] <= y2)
+
+                status_bool = status.flatten() == 1
+
+                good = (status.flatten() == 1) & in_roi
+
                 if np.any(good):
                     p0_g, p1_g = p0[good].reshape(-1, 2), p1[good].reshape(-1, 2)
                     deltas = p1_g - p0_g
@@ -91,25 +110,37 @@ class SlamCv2dModel(SlamBaseModel):
                     self.curr_x += step_size * np.sin(yaw_rad)
                     self.curr_y += step_size * np.cos(yaw_rad)
 
-                    # Обновление списка точек
-                    new_pts = []
-                    # Используем zip, чтобы сохранить соответствие со старым списком pts
-                    for i, (is_ok, new_c) in enumerate(zip(status.flatten(), p1.reshape(-1, 2))):
-                        if is_ok:
-                            new_pts.append({'pt': new_c, 'age': self.pts[i]['age'] + 1})
-                    self.pts = new_pts
+                # --- ОБНОВЛЕНИЕ СПИСКА ТОЧЕК (вынесено из if np.any) ---
+                new_pts = []
+                for i in range(len(self.pts)):
+                    # Оставляем точку только если она в ROI и трекается
+                    if status_bool[i] and in_roi[i]:
+                        new_pts.append({
+                            'pt': p1_flat[i],
+                            'age': self.pts[i]['age'] + 1
+                        })
+                self.pts = new_pts
 
         # 2. ДОСЕВ ТОЧЕК
-        self._replenish_features(gray)
+        self._replenish_features(gray,(x1, y1, x2, y2))
 
         self.prev_gray = gray.copy()
 
-    def _replenish_features(self, gray):
+    def _replenish_features(self, gray, roi_coords=None):
+
+        x1, y1, x2, y2 = roi_coords
+
+        # Создаем черную маску размером с кадр
+        mask = np.zeros_like(gray)
+        # Рисуем белый прямоугольник там, где МОЖНО искать точки
+        mask[y1:y2, x1:x2] = 255
+
         new_feats = cv2.goodFeaturesToTrack(
             gray,
             maxCorners=self.get_param("max_corners"),
             qualityLevel=0.01,
-            minDistance=self.get_param("min_distance")
+            minDistance=self.get_param("min_distance"),
+            mask=mask  # Передаем маску
         )
         if new_feats is None: return
 

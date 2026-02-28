@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="slam tracker base">
-      <change afterPath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" afterDir="false" />
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="slam tracker 2d model">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/f_crop.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_crop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vidlab/m_slam_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_slam_base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,14 +101,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00014" summary="make screenshots + toolbar">
-      <option name="closed" value="true" />
-      <created>1770595929797</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1770595929797</updated>
     </task>
     <task id="LOCAL-00015" summary="add icons as emodji">
       <option name="closed" value="true" />
@@ -496,11 +486,18 @@
       <option name="project" value="LOCAL" />
       <updated>1772225946539</updated>
     </task>
-    <option name="localTasksCounter" value="63" />
+    <task id="LOCAL-00063" summary="slam tracker 2d model">
+      <option name="closed" value="true" />
+      <created>1772233204570</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1772233204570</updated>
+    </task>
+    <option name="localTasksCounter" value="64" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="ai face blur with memory against face lost" />
     <MESSAGE value="export video to file" />
     <MESSAGE value="elipse filter" />
     <MESSAGE value="elipse filter move by mouse" />
@@ -525,7 +522,8 @@
     <MESSAGE value="perfect mov detect" />
     <MESSAGE value="Cam tracker by motion det tehnics" />
     <MESSAGE value="slam tracker base" />
-    <option name="LAST_COMMIT_MESSAGE" value="slam tracker base" />
+    <MESSAGE value="slam tracker 2d model" />
+    <option name="LAST_COMMIT_MESSAGE" value="slam tracker 2d model" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

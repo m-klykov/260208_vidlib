@@ -8,6 +8,7 @@ from vidlab.f_asinc_base import FilterAsyncBase
 from .m_slam_base import SlamBaseModel  # Или конкретная реализация потомка
 from .m_slam_cv2d import SlamCv2dModel
 
+DATA_VERSION = 5
 
 class FilterSlamTracker(FilterAsyncBase):
     def __init__(self, num, cache_dir, params=None):
@@ -19,7 +20,7 @@ class FilterSlamTracker(FilterAsyncBase):
 
         # Данные пути для карты
         self._abs_path = np.array([], dtype=np.float32)
-        # self.load_data()
+        self.load_data()
 
     def get_params_metadata(self):
         # Базовые параметры UI
@@ -42,12 +43,39 @@ class FilterSlamTracker(FilterAsyncBase):
         meta.update(self.interactive_model.get_params_metadata())
         return meta
 
+    def save_data(self):
+        if not self.cache_dir: return
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+        payload = {
+            "version": DATA_VERSION,
+            "ranges": self._analyzed_ranges,
+            "marks": self._detected_scenes,
+            "abs_path": self._abs_path
+        }
+        np.save(self.get_npy_filename(), payload)
+
+    def load_data(self):
+        path = self.get_npy_filename()
+        if os.path.exists(path):
+            try:
+                payload = np.load(path, allow_pickle=True).item()
+                if payload.get("version") == DATA_VERSION:
+                    self._analyzed_ranges = payload.get("ranges", [])
+                    self._detected_scenes = payload.get("marks", [])
+                    self._abs_path = payload.get("abs_path", np.array([]))
+            except Exception as e:
+                print(f"Error loading {self.name} cache: {e}")
+
     # --- ЛОГИКА ОБРАБОТКИ ---
 
     def process(self, frame, idx):
         # 1. Синхронизируем параметры и обновляем интерактивную модель
         self.interactive_model.set_params(self.get_params())
         self.interactive_model.update(frame, idx)
+
+        if self.focused:
+            self._draw_area(frame)
 
         # 2. Рисуем слои оверлея OpenCV (точки, горизонт, скорость)
         if self.get_param("show_points"):
@@ -62,6 +90,16 @@ class FilterSlamTracker(FilterAsyncBase):
         return frame
 
     # --- ОТРИСОВКА CV2 (Интерактив) ---
+
+    def _draw_area(self, frame):
+        if self.get_param("roi_left",-1) < 0: return
+
+        h, w = frame.shape[:2]
+        x1 = int(w * self.get_param("roi_left")) - 1
+        x2 = int(w * self.get_param("roi_right")) + 1
+        y1 = int(h * self.get_param("roi_top")) - 1
+        y2 = int(h * self.get_param("roi_bottom")) + 1
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 20, 100), 2)  # Желтая рамка
 
     def _draw_motion_cv(self, frame):
         # Модель должна возвращать структуру, похожую на результат analyze_frame
@@ -85,7 +123,7 @@ class FilterSlamTracker(FilterAsyncBase):
         px_per_deg = w / self.get_param("fov_h", 111.0)
 
         # Тангаж (Pitch): инвертируем, чтобы при наклоне камеры вниз линия шла вверх
-        pitch_offset = int(-pitch * px_per_deg)
+        pitch_offset = int( pitch * px_per_deg)
 
         # Рисуем риски шкалы
         # Берем диапазон вокруг текущего yaw
@@ -263,12 +301,13 @@ class FilterSlamTracker(FilterAsyncBase):
         })
 
     def _on_worker_progress(self, data):
-        if "abs_path" in data:
-            self._abs_path = data["abs_path"]
-            # self.save_data()
+
+        if "abs_path" in data: self._abs_path = data["abs_path"]
 
         if "ranges" in data: self._analyzed_ranges = data["ranges"]
 
-        # if "marks" in data: self._detected_scenes = data["marks"]
+        if "marks" in data: self._detected_scenes = data["marks"]
 
         if "progress" in data: self.progress = data["progress"]
+
+        self.save_data()
