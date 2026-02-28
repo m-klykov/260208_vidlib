@@ -37,10 +37,10 @@ class VideoProjectExtModel(VideoProjectModel):
             "AI Face Blur": FilterFaceBlur,
             "AI Depth Visualizer": FilterAiDepth,
             "Stabilizer": FilterStabilizer,
-            "Camera Tracker 2D": FilterCameraTracker2D,
-            "Map Tracker": FilterMapTracker,
-            "Motion Detector": FilterMotionDetector,
+            # "Camera Tracker 2D": FilterCameraTracker2D,
             "SLAM Tracker": FilterSlamTracker,
+            "Map Tracker": FilterMapTracker,
+            # "Motion Detector": FilterMotionDetector,
         }
 
     def load_project(self, video_path):

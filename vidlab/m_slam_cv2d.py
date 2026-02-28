@@ -128,6 +128,16 @@ class SlamCv2dModel(SlamBaseModel):
 
     def _replenish_features(self, gray, roi_coords=None):
 
+        max_total = self.get_param("max_corners")
+        curr_count = len(self.pts)
+
+        # 1. Если точек уже достаточно, ничего не делаем
+        if curr_count >= max_total:
+            return
+
+        # 2. Вычисляем, сколько точек нам не хватает
+        needed = max_total - curr_count
+
         x1, y1, x2, y2 = roi_coords
 
         # Создаем черную маску размером с кадр
@@ -137,10 +147,10 @@ class SlamCv2dModel(SlamBaseModel):
 
         new_feats = cv2.goodFeaturesToTrack(
             gray,
-            maxCorners=self.get_param("max_corners"),
-            qualityLevel=0.01,
-            minDistance=self.get_param("min_distance"),
-            mask=mask  # Передаем маску
+            maxCorners = needed,
+            qualityLevel = 0.01,
+            minDistance = self.get_param("min_distance"),
+            mask = mask  # Передаем маску
         )
         if new_feats is None: return
 

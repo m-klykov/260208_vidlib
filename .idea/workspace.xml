@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="slam tracker 2d model">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="area fjr detect">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_project_ext.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_project_ext.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,14 +102,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00015" summary="add icons as emodji">
-      <option name="closed" value="true" />
-      <created>1770598110743</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1770598110743</updated>
     </task>
     <task id="LOCAL-00016" summary="histogram">
       <option name="closed" value="true" />
@@ -494,11 +487,18 @@
       <option name="project" value="LOCAL" />
       <updated>1772233204570</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL-00064" summary="area fjr detect">
+      <option name="closed" value="true" />
+      <created>1772239131946</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1772239131946</updated>
+    </task>
+    <option name="localTasksCounter" value="65" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="export video to file" />
     <MESSAGE value="elipse filter" />
     <MESSAGE value="elipse filter move by mouse" />
     <MESSAGE value="mark in/out for filtars" />
@@ -523,7 +523,8 @@
     <MESSAGE value="Cam tracker by motion det tehnics" />
     <MESSAGE value="slam tracker base" />
     <MESSAGE value="slam tracker 2d model" />
-    <option name="LAST_COMMIT_MESSAGE" value="slam tracker 2d model" />
+    <MESSAGE value="area fjr detect" />
+    <option name="LAST_COMMIT_MESSAGE" value="area fjr detect" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

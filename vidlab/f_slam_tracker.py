@@ -43,6 +43,9 @@ class FilterSlamTracker(FilterAsyncBase):
         meta.update(self.interactive_model.get_params_metadata())
         return meta
 
+    def get_npy_filename(self):
+        return os.path.join(self.cache_dir, f"{self.get_id()}.npy")
+
     def save_data(self):
         if not self.cache_dir: return
         os.makedirs(self.cache_dir, exist_ok=True)
