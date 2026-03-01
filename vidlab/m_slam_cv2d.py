@@ -55,21 +55,31 @@ class SlamCv2dModel(SlamBaseModel):
                     p0_g, p1_g = p0[good].reshape(-1, 2), p1[good].reshape(-1, 2)
                     deltas = p1_g - p0_g
 
-                    # --- РАСЧЕТ YAW (Балансировка) ---
+                    # Извлекаем возраст "хороших" точек
+                    ages_g = np.array([self.pts[i]['age'] for i, ok in enumerate(status_bool) if ok and in_roi[i]])
+
+                    # Вычисляем веса: логарифмический рост, чтобы 1300 не "задавило" всех,
+                    # но имело значительный приоритет над новичками (age=0)
+                    # +1 чтобы избежать log(0)
+                    w_age = np.log1p(ages_g)
+
+                    # --- ОБНОВЛЕННЫЙ РАСЧЕТ YAW (с учетом веса возраста) ---
                     sigma = w / 8
                     dist_x = p0_g[:, 0] - cx
-                    weights = np.exp(-(dist_x ** 2) / (2 * sigma ** 2))
+                    # Гауссиана по экрану * Вес по возрасту
+                    combined_weights = np.exp(-(dist_x ** 2) / (2 * sigma ** 2)) * w_age
 
                     l_m, r_m = dist_x < 0, dist_x >= 0
 
                     def get_w_dx(m):
-                        return np.sum(deltas[m, 0] * weights[m]) / (np.sum(weights[m]) + 1e-8) if np.any(m) else 0
+                        if not np.any(m): return 0
+                        return np.sum(deltas[m, 0] * combined_weights[m]) / (np.sum(combined_weights[m]) + 1e-8)
 
                     dx = (get_w_dx(l_m) + get_w_dx(r_m)) / 2.0 if (np.any(l_m) and np.any(r_m)) else get_w_dx(
                         l_m or r_m)
 
-                    # --- РАСЧЕТ PITCH / ROLL ---
-                    dy = np.sum(deltas[:, 1] * weights) / (np.sum(weights) + 1e-8)
+                    # --- РАСЧЕТ PITCH ---
+                    dy = np.sum(deltas[:, 1] * combined_weights) / (np.sum(combined_weights) + 1e-8)
 
                     M, _ = cv2.estimateAffinePartial2D(p0_g, p1_g)
                     d_roll_deg = 0
@@ -107,8 +117,8 @@ class SlamCv2dModel(SlamBaseModel):
 
                     # Обновление позиции в пространстве
                     yaw_rad = np.radians(self.curr_yaw)
-                    self.curr_x += step_size * np.sin(yaw_rad)
-                    self.curr_y += step_size * np.cos(yaw_rad)
+                    self.curr_x += step_size * np.sin(-yaw_rad)
+                    self.curr_y += step_size * np.cos(-yaw_rad)
 
                 # --- ОБНОВЛЕНИЕ СПИСКА ТОЧЕК (вынесено из if np.any) ---
                 new_pts = []

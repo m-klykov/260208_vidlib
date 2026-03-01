@@ -108,6 +108,8 @@ class FilterSlamTracker(FilterAsyncBase):
         # Модель должна возвращать структуру, похожую на результат analyze_frame
         # Для теста SlamBaseModel просто отдает список pts
         pts = self.interactive_model.get_points()
+        h, w = frame.shape[:2]
+
         for p in pts:
             x, y = map(int, p['pt'])
             age = p['age']
@@ -115,6 +117,33 @@ class FilterSlamTracker(FilterAsyncBase):
             t = min(age / 50, 1.0)
             color = (int(255 * t), int(255 * (1 - t)), int(255 * (1 - t)))
             cv2.circle(frame, (x, y), 2, color, -1)
+
+        # 1. Собираем возрасты для статистики
+        ages = np.array([p['age'] for p in pts])
+        count = len(pts)
+        max_age = int(np.max(ages))
+        avg_age = float(np.mean(ages))
+
+        # 2. Рисуем статус-бар внизу (черная полоса)
+        bar_height = 30
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (0, h - bar_height), (w, h), (0, 0, 0), -1)
+        cv2.addWeighted(overlay, 0.5, frame, 0.5, 0, frame)
+
+        # 3. Текст одной строкой
+        # Формируем строку: Точки | Макс. возраст | Средний возраст
+        status_text = f"TRACKER: Points: {count} | Max Age: {max_age} | Avg Age: {avg_age:.1f}"
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1.5
+        thickness = 2
+        text_color = (255, 255, 255)
+
+        # Центрируем или просто выводим с отступом слева
+        cv2.putText(
+            frame, status_text, (15, h - 25),
+            font, font_scale, text_color,
+            thickness, cv2.LINE_AA)
 
     def _draw_horizon_cv(self, frame):
         pitch, roll, yaw = self.interactive_model.get_horizon_angles()
@@ -247,7 +276,7 @@ class FilterSlamTracker(FilterAsyncBase):
             camera_pos = QPointF(cx, cy)
 
             if map_rect.contains(camera_pos):
-                angle = np.radians(curr_data[2])  # В радианах
+                angle = np.radians(curr_data[2]+90)  # В радианах
                 fov_len = 25.0
                 fov_angle = 0.4  # Полуширина конуса
 
