@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="fix slam add point cnt, del dtpricated filters">
+    <list default="true" id="15755ab8-a5ee-46e6-bc25-792b1a0fedbd" name="Changes" comment="age telemerty, age weight for dows djr cam tracking">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/f_slam_tracker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vidlab/m_slam_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_slam_base.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/vidlab/m_slam_cv2d.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,14 +102,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770555790742</updated>
-    </task>
-    <task id="LOCAL-00017" summary="filter platform">
-      <option name="closed" value="true" />
-      <created>1770667205661</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1770667205662</updated>
     </task>
     <task id="LOCAL-00018" summary="filter manager and editor">
       <option name="closed" value="true" />
@@ -494,11 +487,18 @@
       <option name="project" value="LOCAL" />
       <updated>1772240285839</updated>
     </task>
-    <option name="localTasksCounter" value="66" />
+    <task id="LOCAL-00066" summary="age telemerty, age weight for dows djr cam tracking">
+      <option name="closed" value="true" />
+      <created>1772338138575</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1772338138575</updated>
+    </task>
+    <option name="localTasksCounter" value="67" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="elipse filter move by mouse" />
     <MESSAGE value="mark in/out for filtars" />
     <MESSAGE value="crop refactor" />
     <MESSAGE value="filter param animation" />
@@ -523,7 +523,8 @@
     <MESSAGE value="slam tracker 2d model" />
     <MESSAGE value="area fjr detect" />
     <MESSAGE value="fix slam add point cnt, del dtpricated filters" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix slam add point cnt, del dtpricated filters" />
+    <MESSAGE value="age telemerty, age weight for dows djr cam tracking" />
+    <option name="LAST_COMMIT_MESSAGE" value="age telemerty, age weight for dows djr cam tracking" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

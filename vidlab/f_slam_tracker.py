@@ -38,6 +38,7 @@ class FilterSlamTracker(FilterAsyncBase):
             "map_pos_x": {"type": "float", "min": 0.0, "max": 0.9, "default": 0.02},
             "map_pos_y": {"type": "float", "min": 0.0, "max": 0.9, "default": 0.02},
             "map_scale": {"type": "float", "min": 0.1, "max": 10.0, "default": 1.0},
+            "radar_dist": {"type": "float", "min": 1.0, "max": 100.0, "default": 20.0},
         }
         # Параметры логики из модели
         meta.update(self.interactive_model.get_params_metadata())
@@ -135,7 +136,7 @@ class FilterSlamTracker(FilterAsyncBase):
         status_text = f"TRACKER: Points: {count} | Max Age: {max_age} | Avg Age: {avg_age:.1f}"
 
         font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 1.5
+        font_scale = 1.2
         thickness = 2
         text_color = (255, 255, 255)
 
@@ -191,12 +192,28 @@ class FilterSlamTracker(FilterAsyncBase):
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
 
     def _draw_velocity_cv(self, frame):
-        vel = self.interactive_model.get_fwd_velocity()
+
         h, w = frame.shape[:2]
         scale = self.get_param("velocity_scale")
-        arrow_len = int(vel * scale * 20.0)
 
-        cv2.arrowedLine(frame, (w // 2, int(h * 0.9)), (w // 2, int(h * 0.9) - arrow_len), (0, 255, 0), 2)
+        gap = 10 #половина отступа между стрелками
+        ar_base_len = 30.0 # базовая длинна стрелки
+
+        vel = self.interactive_model.get_fwd_velocity()
+        arrow_len = int(vel * scale * ar_base_len)
+
+        cv2.arrowedLine(frame,
+            (w // 2 - gap, int(h * 0.9)),
+            (w // 2 - gap, int(h * 0.9) - arrow_len),
+            (0, 255, 0), 2)
+
+        vel = self.interactive_model.get_fwd_velocity(True)
+        arrow_len = int(vel * scale * ar_base_len)
+
+        cv2.arrowedLine(frame,
+                        (w // 2 + gap, int(h * 0.9)),
+                        (w // 2 + gap, int(h * 0.9) - arrow_len),
+                        (0, 0 , 255), 2)
 
     # --- ОТРИСОВКА QPAINTER (Карта / Overlay) ---
 
@@ -207,6 +224,8 @@ class FilterSlamTracker(FilterAsyncBase):
         # Используем твою логику отрисовки из FilterCameraTracker2D
         painter.save()
         self._draw_mini_map(painter, idx, viewport_rect)
+
+        self._draw_radar_map(painter, idx, viewport_rect)
         painter.restore()
 
     def _draw_mini_map(self, painter, idx, viewport_rect):
@@ -300,6 +319,77 @@ class FilterSlamTracker(FilterAsyncBase):
                 # графики
                 # self._draw_data_gr(painter, idx, viewport_rect)
 
+    def _draw_radar_map(self, painter, idx, viewport_rect):
+        if not self.get_param("show_map"):  # Или добавь отдельный параметр show_radar
+            return
+
+        # 1. Позиционируем радар в правом верхнем углу
+        vw = viewport_rect.width()
+        vh = viewport_rect.height()
+        m_size = int(min(vw, vh) * self.get_param("map_size"))
+
+        # Смещаем вправо (vw - m_size - отступ)
+        m_x = viewport_rect.right() - m_size - int(vw * 0.02)
+        m_y = int(vh * self.get_param("map_pos_y")) + viewport_rect.top()
+
+        radar_rect = QRectF(m_x, m_y, m_size, m_size)
+
+        # 2. Фон радара
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(QColor(100, 100, 100, 200), 2))
+        painter.setBrush(QBrush(QColor(20, 25, 30, 180)))  # Чуть другой оттенок
+        painter.drawRoundedRect(radar_rect, 5, 5)
+
+        # 3. Получаем 3D точки
+        wpoints = self.interactive_model.get_wpoints()
+        if wpoints is not None and len(wpoints) > 0:
+            # Настройки масштаба радара (например, 20 метров впереди)
+            max_dist = self.get_param("radar_dist")
+            scale = m_size / max_dist
+
+            # Точка "робота" — низ центра квадрата
+            rx = radar_rect.center().x()
+            ry = radar_rect.bottom() - 20
+
+            # Рисуем сетку дальности (круги через каждые 5 метров)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            for dist in [5, 10, 15, 20]:
+                r = dist * scale
+                painter.setPen(QPen(QColor(255, 255, 255, 30), 1, Qt.PenStyle.DashLine))
+                painter.drawEllipse(QPointF(rx, ry), r, r)
+
+            # 4. Рисуем точки
+            for pt in wpoints:
+                x_m, y_m, z_m = pt  # X, Y(высота), Z(дистанция)
+
+                # Проверка границ (от 0 до max_dist метров впереди)
+                if 0 < z_m < max_dist and abs(x_m) < max_dist / 2:
+                    px = rx + x_m * scale
+                    py = ry - z_m * scale
+
+                    if radar_rect.contains(px, py):
+                        # Цвет от высоты Y_m (относительно камеры)
+                        # Если высота близка к cam_height — это земля (зеленый)
+                        # Если высота выше или ниже — препятствие (красный/желтый)
+                        h_cam = self.get_param("cam_height", 0.5)
+                        # diff = abs(y_m-h_cam)  # Насколько точка отклонилась от "уровня земли"
+
+                        if y_m > h_cam:  # Допуск 10см
+                            color = QColor(0, 255, 100, 150)  # Дорога
+                        else:
+                            color = QColor(255, 50, 50, 200)  # Препятствие
+
+                        painter.setPen(Qt.PenStyle.NoPen)
+                        painter.setBrush(QBrush(color))
+                        painter.drawEllipse(QPointF(px, py), 2, 2)
+
+            # 5. Маркер самого робота
+            painter.setBrush(QBrush(QColor(255, 150, 0)))
+            painter.setPen(QPen(Qt.GlobalColor.white, 1))
+            painter.drawRect(QRectF(rx - 4, ry - 2, 8, 12))  # Прямоугольник робота
+
+        painter.restore()
 
     # --- АСИНХРОННЫЙ ПРОСЧЕТ ---
 

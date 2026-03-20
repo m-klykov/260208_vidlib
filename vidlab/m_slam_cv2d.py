@@ -11,7 +11,6 @@ class SlamCv2dModel(SlamBaseModel):
         self.speed_damp = 0.95  # Сглаживание скорости
 
     def get_params_metadata(self) -> dict:
-        """Метаданные параметров для UI фильтра"""
         return {
             "roi_left": {"type": "float", "min": 0.0, "max": 0.5, "default": 0.0},
             "roi_right": {"type": "float", "min": 0.5, "max": 1.0, "default": 1.0},
@@ -20,9 +19,11 @@ class SlamCv2dModel(SlamBaseModel):
             "max_corners": {"type": "int", "min": 50, "max": 1000, "default": 400},
             "min_distance": {"type": "int", "min": 5, "max": 100, "default": 25},
             "fov_h": {"type": "float", "min": 30.0, "max": 160.0, "default": 111.0},
+            "cam_height": {"type": "float", "min": -20.0, "max": 20.0, "default": 1.0},
             "smooth_factor": {"type": "float", "min": 0.1, "max": 2.0, "default": 0.8},
-            "speed_k": {"type": "float", "min": 0.001, "max": 1.0, "default": 0.05}
+            "speed_k": {"type": "float", "min": 0.001, "max": 1.0, "default": 0.05},
         }
+        """Метаданные параметров для UI фильтра"""
 
     def _process_core(self, frame, idx):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -101,7 +102,7 @@ class SlamCv2dModel(SlamBaseModel):
                     self.curr_pitch *= 0.95
                     self.curr_roll *= 0.95
 
-                    # --- РАСЧЕТ СКОРОСТИ (Step Size) ---
+                    # --- РАСЧЕТ СКОРОСТИ черз zoom (Step Size) ---
                     r0_vecs = p0_g - np.array([cx, cy])
                     corrected_deltas = deltas - np.array([dx, dy])
                     dist_sq = np.sum(r0_vecs ** 2, axis=1)
@@ -115,10 +116,31 @@ class SlamCv2dModel(SlamBaseModel):
                         self.curr_velocity = self.speed_damp * self.curr_velocity + (1 - self.speed_damp) * raw_vel
                         step_size = self.curr_velocity * self.get_param("speed_k")
 
+                    # # --- РАСЧЕТ СКОРОСТИ черз высоту камеры и дорогу (Step Size) ---
+                    # road_cx = (x1 + x2) // 2
+                    # road_cy = y2  # Нижняя точка ROI
+                    # road_radius = (x2 - x1) // 8  # Диаметр 1/4 -> Радиус 1/8
+                    #
+                    # # 2. Фильтруем точки, попавшие в этот круг
+                    # dist_to_road_center = np.sqrt((p0_g[:, 0] - road_cx) ** 2 + (p0_g[:, 1] - road_cy) ** 2)
+                    # odo_mask = (dist_to_road_center < road_radius) & (p0_g[:, 1] < y2)
+                    #
+                    # self.curr_step_m = self.calculate_step_size_meters(
+                    #     p0_g[odo_mask],
+                    #     p1_g[odo_mask],
+                    #     h, w,
+                    #     (road_cx, road_cy)
+                    # )
+                    # print(f"sm step: {self.curr_step_m} m")
+
                     # Обновление позиции в пространстве
                     yaw_rad = np.radians(self.curr_yaw)
                     self.curr_x += step_size * np.sin(-yaw_rad)
                     self.curr_y += step_size * np.cos(-yaw_rad)
+
+                    # получаем облако точек
+                    self.wpoints = self.get_3d_reconstruction(
+                        r0_vecs,corrected_deltas,step_size, w, h)
 
                 # --- ОБНОВЛЕНИЕ СПИСКА ТОЧЕК (вынесено из if np.any) ---
                 new_pts = []
@@ -136,7 +158,7 @@ class SlamCv2dModel(SlamBaseModel):
 
         self.prev_gray = gray.copy()
 
-    def _replenish_features(self, gray, roi_coords=None):
+    def _replenish_features_v01(self, gray, roi_coords=None):
 
         max_total = self.get_param("max_corners")
         curr_count = len(self.pts)
@@ -178,6 +200,171 @@ class SlamCv2dModel(SlamBaseModel):
                 # Обновляем массив координат, чтобы новые точки не кучковались
                 current_coords = np.vstack([current_coords, nc])
 
+    # v02
+    def _replenish_features(self, gray, roi_coords):
+        x1, y1, x2, y2 = roi_coords
+        max_total = self.get_param("max_corners", 400)
+        min_dist = self.get_param("min_distance", 25)
+
+        # 1. Делим ROI на 3 вертикальные зоны
+        roi_w = x2 - x1
+        one_third = roi_w // 3
+
+        zones = [
+            (x1, x1 + one_third),  # Левая треть
+            (x1 + one_third, x1 + 2 * one_third),  # Центральная треть (ДОРОГА)
+            (x1 + 2 * one_third, x2)  # Правая треть
+        ]
+
+        # Квота на каждую зону
+        target_per_zone = max_total // 3
+
+        # Подготовим текущие координаты для проверки дистанции
+        if self.pts:
+            current_coords = np.array([d['pt'] for d in self.pts])
+        else:
+            current_coords = np.empty((0, 2))
+
+        for z_x1, z_x2 in zones:
+            # Считаем, сколько точек УЖЕ есть в этой зоне
+            if len(current_coords) > 0:
+                in_zone_mask = (current_coords[:, 0] >= z_x1) & (current_coords[:, 0] < z_x2)
+                zone_pts_count = np.sum(in_zone_mask)
+            else:
+                zone_pts_count = 0
+
+            needed = target_per_zone - zone_pts_count
+            if needed <= 0:
+                continue
+
+            # Создаем маску конкретно для этой зоны
+            mask = np.zeros_like(gray)
+            mask[y1:y2, z_x1:z_x2] = 255
+
+            new_feats = cv2.goodFeaturesToTrack(
+                gray,
+                maxCorners=needed,
+                qualityLevel=0.01,
+                minDistance=min_dist,
+                mask=mask
+            )
+
+            if new_feats is not None:
+                new_coords = new_feats.reshape(-1, 2)
+                for nc in new_coords:
+                    # Проверка дистанции до всех точек (и старых, и только что добавленных)
+                    if len(current_coords) > 0:
+                        dists = np.linalg.norm(current_coords - nc, axis=1)
+                        if np.min(dists) < min_dist:
+                            continue
+
+                    self.pts.append({'pt': nc, 'age': 0})
+                    # Сразу добавляем в массив для проверки следующих точек в этой же зоне
+                    current_coords = np.vstack([current_coords, nc]) if len(current_coords) > 0 else nc.reshape(1, 2)
+
+    def calculate_step_size_meters(self, p0_odo, p1_odo, frame_h, frame_w, road_center):
+        """
+        Векторный расчет перемещения в метрах.
+        road_center: (cx, cy) центра зоны одометрии
+        """
+        if len(p0_odo) == 0:
+            # print("sm none p0_odo")
+            return 0.0
+
+        # 1. Константы камеры
+        h_cam = self.get_param("cam_height", 0.5)
+        fov_h_rad = np.radians(self.get_param("fov_h", 111.0))
+        f = (frame_w / 2) / np.tan(fov_h_rad / 2)
+        cy = frame_h / 2
+
+        # Текущий наклон камеры (Pitch) в радианах
+        alpha = np.radians(self.get_param("cam_pitch_offset", 0) + self.curr_pitch)
+        tan_alpha = np.tan(alpha)
+
+        # 2. Вычисляем Z для всех точек (Векторно)
+        def get_z_vector(y_coords):
+            # tan(theta_y) = (y - cy) / f
+            tan_theta = (y_coords - cy) / f
+            # tan(alpha + theta) через формулу суммы тангенсов
+            denom = (tan_alpha + tan_theta) / (1 - tan_alpha * tan_theta + 1e-8)
+            # Если denom <= 0, точка выше горизонта - заменяем на inf
+            z = np.divide(h_cam, denom, out=np.full_like(denom, np.inf), where=denom > 0)
+            return z
+
+        z0 = get_z_vector(p0_odo[:, 1])
+        z1 = get_z_vector(p1_odo[:, 1])
+
+        # print(f"Avg Z: {np.mean(z0):.2f}m")
+
+        # Смещение каждой точки: dz = z0 - z1
+        dz = z0 - z1
+
+        # 3. Фильтрация валидных значений (убираем бесконечности и аномалии)
+        valid_mask = np.isfinite(dz) & (z0 < 50.0)  # Не берем то, что дальше 50 метров
+        if not np.any(valid_mask):
+            # print("sm no good points")
+            return 0.0
+
+        # 4. Расчет весов по расстоянию до центра круга (road_center)
+        # Вес = 1 / (1 + dist_to_center), чтобы центр имел максимальный приоритет
+        dist_sq = np.sum((p0_odo - road_center) ** 2, axis=1)
+        weights = 1.0 / (1.0 + np.sqrt(dist_sq))
+
+        # Применяем маску валидности к данным и весам
+        dz_valid = dz[valid_mask]
+        w_valid = weights[valid_mask]
+
+        # 5. Взвешенная медиана или среднее
+        # Для робота на гусеницах лучше использовать взвешенное среднее после отсечения выбросов
+        # Убираем выбросы (вне 10-90 перцентиля)
+        # print(f"sm point cnt: {len(dz_valid)}")
+        if len(dz_valid) > 5:
+            p10, p90 = np.percentile(dz_valid, [10, 90])
+            tight_mask = (dz_valid >= p10) & (dz_valid <= p90)
+            if np.any(tight_mask):
+                # print(f"sm point cnt: {len(dz_valid[tight_mask])}")
+                return np.average(dz_valid[tight_mask], weights=w_valid[tight_mask])
+
+        return np.average(dz_valid, weights=w_valid)
+
+    def get_3d_reconstruction(self, r0, deltas, step_size, w, h):
+        """
+        p0_g, p1_g: точки в кадрах t и t+1 (уже отфильтрованные)
+        step_size: текущая скорость (метры или условные единицы за кадр)
+        """
+        fov_h_rad = np.radians(self.get_param("fov_h", 111.0))
+        f = (w / 2) / np.tan(fov_h_rad / 2)
+
+        # Проекция дельты на радиус-вектор (радиальная скорость точки)
+        # Это и есть то самое "масштабирование", которое ты использовал в zoom-методе
+        dist_sq = np.sum(r0 ** 2, axis=1)
+        # Избегаем деления на ноль в центре
+        mask = dist_sq > 10
+
+        r0_m = r0[mask]
+        deltas_m = deltas[mask]
+        dist_m = np.sqrt(dist_sq[mask])
+
+        # Проекция смещения на луч из центра: (delta \cdot r0) / |r0|
+        radial_move = np.sum(deltas_m * r0_m, axis=1) / dist_m
+
+        # 2. Триангуляция глубины Z
+        # Формула: Z = (S * distance_from_center) / radial_move
+        # Чем медленнее точка убегает от центра при заданной скорости S, тем она дальше.
+        z_coords = (step_size * dist_m) / (radial_move + 1e-6)
+
+        # 3. Вычисление X и Y в мировых координатах
+        # X = Z * (x - cx) / f
+        # Y = Z * (y - cy) / f
+        x_coords = z_coords * (r0_m[:, 0]) / f
+        y_coords = z_coords * (r0_m[:, 1]) / f
+
+        # Возвращаем массив [X, Y, Z]
+        return np.column_stack((x_coords, y_coords, z_coords)) #, mask
+
     # Геттеры для фильтра
     def get_points(self):
         return self.pts
+
+    def get_wpoints(self):
+        return self.wpoints

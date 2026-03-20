@@ -52,12 +52,15 @@ class SlamBaseModel:
         self.curr_x, self.curr_y, self.curr_yaw = 0.0, 0.0, 0.0
         self.curr_pitch, self.curr_roll = 0.0, 0.0
         self.curr_velocity = 0.0
+        self.curr_step_m = 0.0
 
         # Точки (для теста)
         self.pts = []
 
         # Путь (только в пакетном режиме)
         self.abs_path = [] if self.is_batch_mode else None
+
+        self.wpoints = None
 
     def update(self, frame, idx):
         """
@@ -118,8 +121,12 @@ class SlamBaseModel:
         """Текущий список [{'pt': [x,y], 'age': int}]"""
         return self.pts
 
-    def get_fwd_velocity(self):
-        return self.curr_velocity
+    def get_wpoints(self):
+        """np[x,y,z] или None"""
+        return self.wpoints
+
+    def get_fwd_velocity(self, im_meter = False):
+        return self.curr_velocity if not im_meter else self.curr_step_m
 
     def get_full_path(self):
         """Возвращает накопленный путь как numpy массив"""
