@@ -218,14 +218,15 @@ class FilterSlamTracker(FilterAsyncBase):
     # --- ОТРИСОВКА QPAINTER (Карта / Overlay) ---
 
     def render_overlay(self, painter, idx, viewport_rect):
-        if not self.get_param("show_map") or len(self._abs_path) == 0:
+        if not self.get_param("show_map"):
             return
 
         # Используем твою логику отрисовки из FilterCameraTracker2D
         painter.save()
         self._draw_mini_map(painter, idx, viewport_rect)
-
         self._draw_radar_map(painter, idx, viewport_rect)
+        self._draw_side_view(painter, idx, viewport_rect)
+
         painter.restore()
 
     def _draw_mini_map(self, painter, idx, viewport_rect):
@@ -388,6 +389,70 @@ class FilterSlamTracker(FilterAsyncBase):
             painter.setBrush(QBrush(QColor(255, 150, 0)))
             painter.setPen(QPen(Qt.GlobalColor.white, 1))
             painter.drawRect(QRectF(rx - 4, ry - 2, 8, 12))  # Прямоугольник робота
+
+        painter.restore()
+
+    def _draw_side_view(self, painter, idx, viewport_rect):
+        if not self.get_param("show_map"):
+            return
+
+        vw = viewport_rect.width()
+        vh = viewport_rect.height()
+        m_size = int(min(vw, vh) * self.get_param("map_size"))
+
+        # Размещаем под основным радаром (смещение по Y на m_size + отступ)
+        m_x = viewport_rect.right() - m_size - int(vw * 0.02)
+        m_y = int(vh * self.get_param("map_pos_y")) + viewport_rect.top() + m_size + 10
+
+        side_rect = QRectF(m_x, m_y, m_size, m_size * 0.6)  # Делаем его чуть приплюснутым
+
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(QColor(100, 100, 100, 200), 2))
+        painter.setBrush(QBrush(QColor(20, 25, 30, 180)))
+        painter.drawRoundedRect(side_rect, 5, 5)
+
+        wpoints = self.interactive_model.get_wpoints()
+        if wpoints is not None and len(wpoints) > 0:
+            max_z = self.get_param("radar_dist")
+            max_y = 10.0  # вверх/вниз
+
+            scale_z = side_rect.width() / max_z
+            scale_y = side_rect.height() / (max_y * 2)
+
+            # Точка камеры (лево-центр по вертикали)
+            origin_x = side_rect.left() + 10
+            origin_y = side_rect.center().y()
+
+            # 1. Линия "идеального" уровня земли (на высоте cam_height ниже камеры)
+            h_cam = self.get_param("cam_height", 0.5)
+            ground_y = origin_y + h_cam * scale_y
+
+            painter.setPen(QPen(QColor(0, 255, 100, 100), 1, Qt.PenStyle.DashLine))
+            painter.drawLine(QPointF(origin_x, ground_y), QPointF(side_rect.right(), ground_y))
+
+            # 2. Отрисовка точек
+            for pt in wpoints:
+                x_m, y_m, z_m = pt  # X(бок), Y(высота), Z(дистанция)
+
+                if 0.1 < z_m < max_z and abs(y_m) < max_y:
+                    px = origin_x + z_m * scale_z
+                    # В Qt ось Y перевернута: минус идет вверх
+                    py = origin_y + y_m * scale_y
+
+                    if side_rect.contains(px, py):
+                        # Цвет: чем ближе к линии земли, тем зеленее
+                        diff = abs(y_m - h_cam)
+                        color = QColor(0, 255, 100, 150) if diff < 0.15 else QColor(255, 100, 0, 180)
+
+                        painter.setPen(Qt.PenStyle.NoPen)
+                        painter.setBrush(QBrush(color))
+                        painter.drawEllipse(QPointF(px, py), 2, 2)
+
+            # 3. Рисуем "корпус" робота/камеры
+            painter.setPen(QPen(Qt.GlobalColor.white, 1))
+            painter.setBrush(QBrush(QColor(255, 50, 50)))
+            painter.drawRect(QRectF(origin_x - 5, origin_y - 5, 10, 10))
 
         painter.restore()
 

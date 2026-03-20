@@ -30,6 +30,12 @@ class SlamCv2dModel(SlamBaseModel):
         h, w = gray.shape
         cx, cy = w // 2, h // 2
 
+        if (self.prev_gray is not None
+            and gray.shape == self.prev_gray.shape
+            and np.array_equal(gray, self.prev_gray)
+        ):
+            return #картинка не изменилась
+
         # Расчет границ ROI в пикселях
         x1 = int(w * self.get_param("roi_left", 0.0))
         x2 = int(w * self.get_param("roi_right", 1.0))
@@ -139,8 +145,10 @@ class SlamCv2dModel(SlamBaseModel):
                     self.curr_y += step_size * np.cos(-yaw_rad)
 
                     # получаем облако точек
-                    self.wpoints = self.get_3d_reconstruction(
+                    wps = self.get_3d_reconstruction(
                         r0_vecs,corrected_deltas,step_size, w, h)
+                    if wps is not None and len(wps)>0:
+                        self.wpoints = wps
 
                 # --- ОБНОВЛЕНИЕ СПИСКА ТОЧЕК (вынесено из if np.any) ---
                 new_pts = []
